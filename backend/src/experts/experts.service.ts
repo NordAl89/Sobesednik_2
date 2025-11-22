@@ -1,0 +1,482 @@
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Expert } from './entities/expert.entity';
+import { CreateExpertDto } from './dto/create-expert.dto';
+import { TelegramService } from '../telegram/telegram.service';
+
+@Injectable()
+export class ExpertsService {
+  constructor(
+    @InjectRepository(Expert)
+    private expertsRepository: Repository<Expert>,
+    private readonly telegramService: TelegramService,     // <-- внедряем TelegramService
+  ) {}
+
+  // Создание эксперта (без файлов)
+async create(createExpertDto: CreateExpertDto): Promise<Expert> {
+  console.log('🎯 Создание эксперта с данными:', createExpertDto);
+
+  const existingExpertByLogin = await this.expertsRepository.findOne({
+    where: { login: createExpertDto.login },
+  });
+
+  if (existingExpertByLogin) {
+    throw new ConflictException('Эксперт с таким логином уже существует');
+  }
+
+  const expert = new Expert();
+  expert.login = createExpertDto.login;
+  expert.password = createExpertDto.password;
+  expert.name = createExpertDto.name;
+  expert.age = createExpertDto.age;
+  expert.gender = createExpertDto.gender;
+  expert.availability = createExpertDto.availability;
+  expert.about = createExpertDto.about || '';
+  expert.allowedTopics = createExpertDto.allowedTopics || '';
+  expert.forbiddenTopics = createExpertDto.forbiddenTopics || '';
+  expert.price = createExpertDto.price;
+  expert.telegram = createExpertDto.telegram
+    ? createExpertDto.telegram.startsWith('@')
+      ? createExpertDto.telegram
+      : '@' + createExpertDto.telegram
+    : null;
+  expert.otherMessengers = createExpertDto.otherMessengers || '';
+  expert.adultTopics = createExpertDto.adultTopics || false;
+  expert.noForbiddenTopics = createExpertDto.noForbiddenTopics || false;
+  expert.alwaysAvailable = createExpertDto.alwaysAvailable || false;
+  expert.paymentCode = createExpertDto.paymentCode;
+  expert.status = this.getValidStatus(createExpertDto.status);
+
+  const savedExpert = await this.expertsRepository.save(expert);
+  await this.saveData();
+
+  // повторное получение — чтобы вернулись createdAt и updatedAt
+  const fullExpert = await this.findOne(savedExpert.id);
+
+  console.log('✅ Эксперт создан. ID:', fullExpert.id);
+  return fullExpert;
+}
+// телеграм уведомление
+ async notifyExpertViaTelegram(expertId: string, message: string) {
+    const expert = await this.expertsRepository.findOne({ where: { id: expertId } });
+    if (!expert || !expert.telegram) return;
+    await this.telegramService.sendMessage(expert.telegram, message);
+  }
+
+// Создание эксперта с файлами
+async createWithFiles(
+  createExpertDto: any,
+  mainPhoto: Express.Multer.File,
+  galleryFiles: Express.Multer.File[],
+): Promise<Expert> {
+  console.log('🎯 Создание эксперта с файлами:', createExpertDto);
+
+  const existingExpertByLogin = await this.expertsRepository.findOne({
+    where: { login: createExpertDto.login },
+  });
+
+  if (existingExpertByLogin) {
+    throw new ConflictException('Эксперт с таким логином уже существует');
+  }
+
+  const expert = new Expert();
+  expert.login = createExpertDto.login;
+  expert.password = createExpertDto.password;
+  expert.name = createExpertDto.name;
+  expert.age = createExpertDto.age;
+  expert.gender = createExpertDto.gender;
+  expert.availability = createExpertDto.availability;
+  expert.about = createExpertDto.about || '';
+  expert.telegram = createExpertDto.telegram
+    ? createExpertDto.telegram.startsWith('@')
+      ? createExpertDto.telegram
+      : '@' + createExpertDto.telegram
+    : null;
+  expert.otherMessengers = createExpertDto.otherMessengers || '';
+  expert.allowedTopics = createExpertDto.allowedTopics || '';
+  expert.forbiddenTopics = createExpertDto.forbiddenTopics || '';
+  expert.price = createExpertDto.price;
+  expert.adultTopics = createExpertDto.adultTopics || false;
+  expert.noForbiddenTopics = createExpertDto.noForbiddenTopics || false;
+  expert.alwaysAvailable = createExpertDto.alwaysAvailable || false;
+  expert.paymentCode = createExpertDto.paymentCode;
+  expert.publicationDays = createExpertDto.publicationDays || 30;
+  expert.paymentAmount = createExpertDto.paymentAmount || 0;
+  expert.status = 'pending';
+
+  // Сначала сохраняем эксперта, чтобы получить ID
+  const savedExpert = await this.expertsRepository.save(expert);
+  console.log('📝 Эксперт сохранен с ID:', savedExpert.id);
+
+  // Теперь перемещаем файлы в папку эксперта
+  try {
+    const { fs, path } = await this.moveFilesToExpertFolder(
+      savedExpert.id,
+      mainPhoto,
+      galleryFiles,
+    );
+
+    // Обновляем пути к файлам
+    if (mainPhoto) {
+      savedExpert.mainPhotoUrl = `/uploads/experts/${savedExpert.id}/${mainPhoto.filename}`;
+    }
+
+    if (galleryFiles && galleryFiles.length > 0) {
+      const galleryUrls = galleryFiles.map(
+        file => `/uploads/experts/${savedExpert.id}/${file.filename}`,
+      );
+      savedExpert.galleryUrls = JSON.stringify(galleryUrls);
+    }
+
+    // Сохраняем обновленные пути
+    await this.expertsRepository.save(savedExpert);
+    await this.saveData();
+
+    console.log('✅ Файлы перемещены в папку эксперта:', savedExpert.id);
+  } catch (error) {
+    console.error('❌ Ошибка при перемещении файлов:', error);
+    // Удаляем эксперта, если не удалось переместить файлы
+    await this.expertsRepository.delete(savedExpert.id);
+    throw error;
+  }
+
+  // Получаем полные данные эксперта
+  const fullExpert = await this.findOne(savedExpert.id);
+
+  console.log('✅ Эксперт создан с файлами. ID:', fullExpert.id);
+  return fullExpert;
+}
+
+// Вспомогательный метод для перемещения файлов в папку эксперта
+private async moveFilesToExpertFolder(
+  expertId: string,
+  mainPhoto: Express.Multer.File,
+  galleryFiles: Express.Multer.File[],
+): Promise<{ fs: any; path: any }> {
+  const fs = await import('fs/promises');
+  const path = await import('path');
+
+  // Создаем папку для эксперта
+  const expertFolder = path.join(process.cwd(), 'uploads', 'experts', expertId);
+  await fs.mkdir(expertFolder, { recursive: true });
+  console.log(`📁 Создана папка для эксперта: ${expertFolder}`);
+
+  // Перемещаем главное фото
+  if (mainPhoto) {
+    const oldPath = path.join(process.cwd(), 'uploads', mainPhoto.filename);
+    const newPath = path.join(expertFolder, mainPhoto.filename);
+    try {
+      await fs.rename(oldPath, newPath);
+      console.log(`📸 Главное фото перемещено: ${mainPhoto.filename}`);
+    } catch (error: any) {
+      console.warn(`⚠️ Не удалось переместить главное фото:`, error.message);
+    }
+  }
+
+  // Перемещаем файлы галереи
+  if (galleryFiles && galleryFiles.length > 0) {
+    for (const file of galleryFiles) {
+      const oldPath = path.join(process.cwd(), 'uploads', file.filename);
+      const newPath = path.join(expertFolder, file.filename);
+      try {
+        await fs.rename(oldPath, newPath);
+        console.log(`🖼️ Файл галереи перемещен: ${file.filename}`);
+      } catch (error: any) {
+        console.warn(`⚠️ Не удалось переместить файл галереи:`, error.message);
+      }
+    }
+  }
+
+  return { fs, path };
+}
+
+  // Валидация эксперта для входа
+  async validateExpert(login: string, password: string): Promise<Expert | null> {
+    const expert = await this.expertsRepository.findOne({ where: { login } });
+    if (expert && expert.password === password) {
+      return expert;
+    }
+    return null;
+  }
+
+  async getProfile(id: string): Promise<Expert> {
+    const expert = await this.findOne(id);
+    return expert;
+  }
+
+  async findAll(): Promise<Expert[]> {
+    return await this.expertsRepository.find({ order: { createdAt: 'DESC' } });
+  }
+
+  // Возвращает только активных и проверенных экспертов для публичного отображения
+  async findAllActive(): Promise<Expert[]> {
+    return await this.expertsRepository.find({ 
+      where: { 
+        status: 'active',
+        adminVerified: true 
+      },
+      order: { createdAt: 'DESC' } 
+    });
+  }
+
+  async findOne(id: string): Promise<Expert> {
+    const expert = await this.expertsRepository.findOne({ where: { id } });
+    if (!expert) throw new NotFoundException('Эксперт не найден');
+    return expert;
+  }
+
+  async remove(id: string): Promise<void> {
+    // Сначала получаем эксперта, чтобы узнать какие файлы нужно удалить
+    const expert = await this.findOne(id);
+    
+    // Удаляем файлы с диска
+    await this.deleteExpertFiles(expert);
+    
+    // Удаляем запись из БД
+    const result = await this.expertsRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException('Эксперт не найден');
+    }
+    await this.saveData(); // заглушка
+    
+    console.log(`🗑️ Эксперт ${id} и его файлы успешно удалены`);
+  }
+
+  // Вспомогательный метод для удаления файлов эксперта
+  private async deleteExpertFiles(expert: Expert): Promise<void> {
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    
+    // Новая логика: удаляем всю папку эксперта
+    const expertFolder = path.join(process.cwd(), 'uploads', 'experts', expert.id);
+    
+    try {
+      // Проверяем, существует ли папка
+      await fs.access(expertFolder);
+      
+      // Удаляем папку со всем содержимым
+      await fs.rm(expertFolder, { recursive: true, force: true });
+      console.log(`✅ Удалена папка эксперта: ${expertFolder}`);
+    } catch (error: any) {
+      if (error.code !== 'ENOENT') {
+        console.warn(`⚠️ Не удалось удалить папку эксперта:`, error.message);
+      } else {
+        console.log(`ℹ️ Папка эксперта не найдена (возможно, старый формат): ${expertFolder}`);
+        
+        // Fallback для старого формата (файлы в корне uploads)
+        await this.deleteExpertFilesOldFormat(expert, fs, path);
+      }
+    }
+  }
+
+  // Fallback метод для удаления файлов в старом формате (без папок)
+  private async deleteExpertFilesOldFormat(expert: Expert, fs: any, path: any): Promise<void> {
+    const filesToDelete: string[] = [];
+    
+    // Добавляем главное фото
+    if (expert.mainPhotoUrl) {
+      const filePath = path.join(process.cwd(), 'uploads', path.basename(expert.mainPhotoUrl));
+      filesToDelete.push(filePath);
+    }
+    
+    // Добавляем файлы из галереи
+    if (expert.galleryUrls) {
+      try {
+        const galleryUrls = JSON.parse(expert.galleryUrls);
+        if (Array.isArray(galleryUrls)) {
+          galleryUrls.forEach(url => {
+            const filePath = path.join(process.cwd(), 'uploads', path.basename(url));
+            filesToDelete.push(filePath);
+          });
+        }
+      } catch (error) {
+        console.warn('⚠️ Ошибка парсинга galleryUrls:', error);
+      }
+    }
+    
+    // Удаляем все файлы
+    for (const filePath of filesToDelete) {
+      try {
+        await fs.unlink(filePath);
+        console.log(`✅ Удален файл (старый формат): ${filePath}`);
+      } catch (error: any) {
+        // Файл может не существовать - это нормально
+        if (error.code !== 'ENOENT') {
+          console.warn(`⚠️ Не удалось удалить файл ${filePath}:`, error.message);
+        }
+      }
+    }
+  }
+
+  async update(id: string, updateData: any): Promise<Expert> {
+    const expert = await this.findOne(id);
+    const { id: _, login: __, ...safeUpdateData } = updateData;
+
+    if (safeUpdateData.status) {
+      safeUpdateData.status = this.getValidStatus(safeUpdateData.status);
+    }
+
+    Object.assign(expert, safeUpdateData);
+    const updatedExpert = await this.expertsRepository.save(expert);
+    await this.saveData(); // заглушка
+
+    return updatedExpert;
+  }
+
+  async updateWithFiles(
+    id: string,
+    updateData: any,
+    mainPhoto?: Express.Multer.File,
+    galleryFiles?: Express.Multer.File[],
+  ): Promise<Expert> {
+    console.log('🔄 Обновление эксперта с файлами:', id, updateData);
+
+    const expert = await this.findOne(id);
+    
+    // Обновляем данные (исключаем id и login)
+    const { id: _, login: __, ...safeUpdateData } = updateData;
+    Object.assign(expert, safeUpdateData);
+
+    // Обрабатываем файлы если они переданы
+    if (mainPhoto || (galleryFiles && galleryFiles.length > 0)) {
+      try {
+        const { fs, path } = await this.moveFilesToExpertFolder(
+          expert.id,
+          mainPhoto,
+          galleryFiles,
+        );
+
+        // Обновляем главное фото
+        if (mainPhoto) {
+          expert.mainPhotoUrl = `/uploads/experts/${expert.id}/${mainPhoto.filename}`;
+        }
+
+        // Обновляем или добавляем к галерее
+        if (galleryFiles && galleryFiles.length > 0) {
+          const newGalleryUrls = galleryFiles.map(
+            file => `/uploads/experts/${expert.id}/${file.filename}`,
+          );
+          
+          // Если есть существующая галерея, добавляем к ней
+          let existingGallery = [];
+          if (expert.galleryUrls) {
+            try {
+              existingGallery = JSON.parse(expert.galleryUrls);
+            } catch (e) {
+              existingGallery = [];
+            }
+          }
+          
+          const combinedGallery = [...existingGallery, ...newGalleryUrls];
+          expert.galleryUrls = JSON.stringify(combinedGallery);
+        }
+
+        console.log('✅ Файлы обновлены для эксперта:', expert.id);
+      } catch (error) {
+        console.error('❌ Ошибка при обновлении файлов:', error);
+        throw error;
+      }
+    }
+
+    const updatedExpert = await this.expertsRepository.save(expert);
+    await this.saveData();
+
+    console.log('✅ Эксперт обновлен:', updatedExpert.id);
+    return updatedExpert;
+  }
+
+  async requestModeration(expertId: string): Promise<Expert> {
+    const expert = await this.findOne(expertId);
+    expert.adminVerified = false;
+    expert.status = 'pending';
+    const savedExpert = await this.expertsRepository.save(expert);
+    await this.saveData(); // заглушка
+    return savedExpert;
+  }
+
+  async approveExpert(expertId: string): Promise<Expert> {
+    const expert = await this.findOne(expertId);
+    expert.adminVerified = true;
+    expert.status = 'active';
+    expert.publishedAt = new Date();
+    
+    // Используем количество дней из заявки или 30 дней по умолчанию
+    const daysToAdd = expert.publicationDays || 30;
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + daysToAdd);
+    expert.expiresAt = expiresAt;
+    
+    const savedExpert = await this.expertsRepository.save(expert);
+    await this.saveData(); // заглушка
+    
+    console.log(`✅ Анкета одобрена. Срок публикации: ${daysToAdd} дней до ${expiresAt.toLocaleDateString('ru-RU')}`);
+    
+    return savedExpert;
+  }
+
+  async rejectExpert(expertId: string, reason: string): Promise<Expert> {
+    const expert = await this.findOne(expertId);
+    expert.status = 'rejected';
+    
+    // Удаляем файлы отклоненного эксперта
+    await this.deleteExpertFiles(expert);
+    
+    const savedExpert = await this.expertsRepository.save(expert);
+    await this.saveData(); // заглушка
+    
+    console.log(`❌ Эксперт ${expertId} отклонен. Файлы удалены.`);
+    return savedExpert;
+  }
+
+  async blockExpert(id: string): Promise<Expert> {
+    const expert = await this.findOne(id);
+    expert.status = 'rejected'; // можно оставить 'rejected' чтобы соответствовать типу
+    expert.adminVerified = false;
+    expert.updatedAt = new Date();
+    
+    // Удаляем файлы заблокированного эксперта
+    await this.deleteExpertFiles(expert);
+    
+    const savedExpert = await this.expertsRepository.save(expert);
+    await this.saveData(); // заглушка
+    
+    console.log(`🚫 Эксперт ${id} заблокирован. Файлы удалены.`);
+    return savedExpert;
+  }
+
+  // Проверка истекших анкет
+  async checkAndRemoveExpiredExperts(): Promise<void> {
+    const now = new Date();
+    const expiredExperts = await this.expertsRepository
+      .createQueryBuilder('expert')
+      .where('expert.status = :status', { status: 'active' })
+      .andWhere('expert.expiresAt < :now', { now })
+      .getMany();
+
+    for (const expert of expiredExperts) {
+      await this.expertsRepository.remove(expert);
+    }
+  }
+
+  // Метод запуска планировщика
+  async startExpirationChecker(): Promise<void> {
+    setInterval(() => this.checkAndRemoveExpiredExperts(), 60 * 1000); // каждую минуту
+    await this.checkAndRemoveExpiredExperts(); // первая проверка сразу
+    console.log('⏰ Планировщик удаления истекших анкет запущен');
+  }
+
+
+  // Вспомогательный метод для проверки статуса
+  private getValidStatus(
+    status: string,
+  ): 'draft' | 'pending' | 'active' | 'expired' | 'rejected' {
+    const validStatuses = ['draft', 'pending', 'active', 'expired', 'rejected'];
+    return validStatuses.includes(status) ? (status as any) : 'draft';
+  }
+
+  // Заглушка saveData для TS
+  private async saveData(): Promise<void> {
+    return;
+  }  
+}
