@@ -49,6 +49,22 @@
           </a>
           <span v-else>—</span>
         </p>
+        <div v-if="otherMessengersList.length">
+  <p><strong>Другие мессенджеры:</strong></p>
+  <div class="other-messengers">
+    <a 
+      v-for="(link, index) in otherMessengersList"
+      :key="index"
+      :href="getMessengerInfo(link).href"
+      target="_blank"
+      rel="noopener"
+      class="other-messenger-link"
+    >
+     <strong>{{ getMessengerInfo(link).icon }} {{ getMessengerInfo(link).name }} </strong> 
+    </a>
+  </div>
+</div>
+
         <p><strong>Разрешённые темы:</strong> {{ expert.allowedTopics }}</p>
         <p v-if="expert.forbiddenTopics"><strong>Запрещённые темы:</strong> {{ expert.forbiddenTopics }}</p>
       </div>
@@ -165,6 +181,32 @@ const newReview = ref('')
 // Лайтбокс состояния
 const lightboxVisible = ref(false)
 const currentLightboxIndex = ref(0)
+
+//Раздел Другие мессенджеры
+const getMessengerInfo = (url) => {
+  if (!url) return { name: 'Ссылка', icon: '🔗', href: url }
+
+  const lower = url.toLowerCase()
+  if (lower.includes('vk.com')) return { name: 'VK', icon: '', href: url }
+  if (lower.includes('t.me')) return { name: 'Telegram', icon: '📲', href: url }
+  if (lower.includes('wa.me') || lower.includes('whatsapp.com')) return { name: 'WhatsApp', icon: '💚', href: url }
+  if (lower.includes('instagram.com')) return { name: 'Instagram', icon: '📸', href: url }
+
+  return { name: 'Ссылка', icon: '🔗', href: url }
+}
+const otherMessengersList = computed(() => {
+  if (!expert.value?.otherMessengers) return []
+
+  try {
+    // Попробуем распарсить JSON или массив
+    const parsed = JSON.parse(expert.value.otherMessengers)
+    if (Array.isArray(parsed)) return parsed.map(url => url.trim())
+  } catch {
+    // Если просто строка, разделяем по запятым
+    return expert.value.otherMessengers.split(',').map(url => url.trim())
+  }
+})
+
 
 // Обрабатываем galleryUrls - может быть строкой или массивом
 const galleryUrls = computed(() => {
@@ -329,6 +371,7 @@ onMounted(fetchExpert)
   max-width: 800px;
   margin: 2rem auto;
   padding: 1rem;
+  background-color: rgba(145, 173, 250, 0.1);
 }
 
 .back-btn {
@@ -392,6 +435,30 @@ onMounted(fetchExpert)
 .details strong {
   color: #34495e;
 }
+
+.other-messengers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.other-messenger-link {
+  display: inline-block;
+  padding: 6px 12px;
+  background: #f0f0f0;
+  border-radius: 6px;
+  color: #0077ff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.other-messenger-link:hover {
+  background: #0077ff;
+  color: white;
+}
+
 
 /* Характеристики эксперта */
 .expert-characteristics {
