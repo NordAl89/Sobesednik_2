@@ -42,10 +42,10 @@
           <input v-model="form.telegram" type="text" placeholder="@username" required />
         </label>
 
-        <label>
+        <!-- <label>
           Другие мессенджеры
           <input v-model="form.otherMessengers" type="text" placeholder="WhatsApp, Viber, etc." />
-        </label>
+        </label> -->
       </div>
 
       <!-- Темы и настройки -->

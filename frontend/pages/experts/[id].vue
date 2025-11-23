@@ -20,7 +20,7 @@
       <div class="details">
         <h1>{{ expert.name }}</h1>
         <p><strong>Возраст:</strong> {{ expert.age }}</p>
-        <p><strong>Пол:</strong> {{ expert.gender === 'male' ? 'Мужской' : 'Женский' }}</p>
+        <!-- <p><strong>Пол:</strong> {{ expert.gender === 'male' ? 'Мужской' : 'Женский' }}</p> -->
         <p><strong>Статус:</strong> {{ expert.availability }}</p>
         <p><strong>Стоимость часа от:</strong> {{ expert.price }} ₽</p>
         
@@ -191,6 +191,7 @@ const getMessengerInfo = (url) => {
   if (lower.includes('t.me')) return { name: 'Telegram', icon: '📲', href: url }
   if (lower.includes('wa.me') || lower.includes('whatsapp.com')) return { name: 'WhatsApp', icon: '💚', href: url }
   if (lower.includes('instagram.com')) return { name: 'Instagram', icon: '📸', href: url }
+   if (urlOrTag.includes('#')) return { name: 'Discord', icon: '💜', href: '#' }
 
   return { name: 'Ссылка', icon: '🔗', href: url }
 }
@@ -499,7 +500,7 @@ onMounted(fetchExpert)
 }
 
 .about-section {
-  max-width: 800px;
+  max-width: 100%;
   margin: 2rem auto;
   background: #f9f9f9;
   border: 1px solid #e0e0e0;

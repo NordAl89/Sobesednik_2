@@ -28,20 +28,20 @@
             class="verified-badge"
           />
       </h3>
-      <p>Возраст: {{ expert.age }} {{ getAgeWord(expert.age) }}</p>
-      <p>Пол: {{ expert.gender === 'male' ? 'Мужской' : 'Женский' }}</p>
+      <p> <b>Возраст:</b> {{ expert.age }} {{ getAgeWord(expert.age) }}</p>
+      <!-- <p>Пол: {{ expert.gender === 'male' ? 'Мужской' : 'Женский' }}</p> -->
 
      <p class="status-text">
-        Статус: 
+        <b>Статус:</b> 
         <span :class="getStatusClass(expert.availability)">
           {{ getStatusText(expert.availability) }}
         </span>
       </p>
 
-      <p class="price"><span class="price_simple">Цена от:</span> {{ expert.price }} руб/час</p>
+      <p class="price"><span class="price_simple"><b>Цена от:</b></span> {{ expert.price }} руб/час</p>
 
-      <p v-if="expert.allowedTopics">Разрешённые темы: {{ expert.allowedTopics }}</p>
-      <p v-if="expert.forbiddenTopics">Запрещённые темы: {{ expert.forbiddenTopics }}</p>
+      <p v-if="expert.allowedTopics"><b>Разрешённые темы:</b> {{ expert.allowedTopics }}</p>
+      <p v-if="expert.forbiddenTopics"><b>Запрещённые темы:</b> {{ expert.forbiddenTopics }}</p>
       
       <!-- Дополнительные индикаторы -->
       <div class="expert-tags">
@@ -249,6 +249,7 @@ p {
   background-color: #3498db;
   color: white;
 }
+
 
 /* ---------- 📱 АДАПТИВНОСТЬ ---------- */
 

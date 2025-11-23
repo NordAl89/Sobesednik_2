@@ -194,7 +194,7 @@ onMounted(() => {
     left: 0;
     width: 75%;
     height: 100vh;
-    background: rgba(255, 255, 255, 0.98);
+    background: linear-gradient(0deg, #fdf3d1 0%, #ffd79a 40%, #c6a4f5 100%);
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
     transform: translateX(-100%);
     transition: transform 0.3s ease;
@@ -242,7 +242,7 @@ onMounted(() => {
     width: 60%;
     max-width: 350px;
     height: 100vh;
-    background: rgba(255, 255, 255, 0.98);
+    background: linear-gradient(90deg, #fdf3d1 0%, #ffd79a 40%, #c6a4f5 100%);
     box-shadow: -2px 0 15px rgba(0, 0, 0, 0.2);
     transform: translateX(100%);
     transition: transform 0.3s ease;

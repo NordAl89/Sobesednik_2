@@ -1,5 +1,5 @@
 <template>
-  <div @scroll.passive="handleScroll" class="page-container">
+  <div class="page-container">
     <div class="compact-hero">
       <div class="compact-hero-content">
         <p class="compact-hero-text">
@@ -16,28 +16,43 @@
         placeholder="Поиск по имени, фамилии, логину, возрасту или Telegram..."
       />
     </div>
-    <div class="sort-bar">
-      <label>Сортировка:
-        <select v-model="sortOption">
-          <option value="">Без сортировки</option>
-          <option v-for="option in sortOptions" :key="option.value" :value="option.value">
-            {{ option.label }}
-          </option>
-        </select>
-      </label>
-    </div>
+    <div class="top-bar">
+  <!-- Сортировка -->
+  <div class="sort-bar">
+    <label>
+      Сортировка:
+      <select v-model="sortOption">
+        <option value="">Без сортировки</option>
+        <option
+          v-for="option in sortOptions"
+          :key="option.value"
+          :value="option.value"
+        >
+          {{ option.label }}
+        </option>
+      </select>
+    </label>
+  </div>
 
+  <!-- Кнопка раскрытия фильтров -->
+  <button class="filter-toggle" @click="filtersOpen = !filtersOpen">
+    Фильтры
+    <span v-if="!filtersOpen">▼</span>
+    <span v-else>▲</span>
+  </button>
+</div>
 
-    <!-- Фильтры -->
-    <div class="filters">
-      <label><input type="checkbox" v-model="filters.male" /> Мужчины</label>
-      <label><input type="checkbox" v-model="filters.female" /> Женщины</label>
-      <label><input type="checkbox" v-model="filters.adultTopics" /> Есть темы 18+</label>
-      <label><input type="checkbox" v-model="filters.noForbidden" /> Нет запрещённых тем</label>
-      <label><input type="checkbox" v-model="filters.freeNow" /> Сейчас свободен</label>
-      <label><input type="checkbox" v-model="filters.alwaysAvailable" /> 24/7</label>
-       <label><input type="checkbox" v-model="filters.verifiedExpert" /> Подтвержденный собеседник</label>
-    </div>
+<!-- Сами фильтры, скрываем/открываем -->
+<div class="filters" :class="{ open: filtersOpen }">
+  <label><input type="checkbox" v-model="filters.male" /> Мужчины</label>
+  <label><input type="checkbox" v-model="filters.female" /> Женщины</label>
+  <label><input type="checkbox" v-model="filters.adultTopics" /> Есть темы 18+</label>
+  <label><input type="checkbox" v-model="filters.noForbidden" /> Нет запрещённых тем</label>
+  <label><input type="checkbox" v-model="filters.freeNow" /> Сейчас свободен</label>
+  <label><input type="checkbox" v-model="filters.alwaysAvailable" /> 24/7</label>
+  <label><input type="checkbox" v-model="filters.verifiedExpert" /> Подтверждённый собеседник</label>
+</div>
+
 
     <h1>Список собеседников</h1>
 
@@ -55,11 +70,12 @@
     </div>
 
     <!-- Кнопка "Показать ещё" -->
-    <div v-if="hasMoreExperts" class="show-more">
-      <button @click="showMore" :disabled="isLoadingMore">
-        {{ isLoadingMore ? 'Загрузка...' : 'Показать ещё' }}
-      </button>
-    </div>
+    <div v-if="hasMoreExperts && !infiniteScrollEnabled" class="show-more">
+  <button @click="showMore" :disabled="isLoadingMore">
+    {{ isLoadingMore ? 'Загрузка...' : 'Показать ещё' }}
+  </button>
+</div>
+
 
     <!-- Нумерация страниц -->
     <div v-if="totalPages > 1" class="pagination">
@@ -94,11 +110,13 @@ const filters = ref({
   alwaysAvailable: false,
   verifiedExpert: false,
 })
-const expertsPerPage = 5
+const expertsPerPage = 4
 const currentPage = ref(1)
 const isLoadingMore = ref(false)
 
 // фильтрация
+const filtersOpen = ref(false)  // состояние открытия фильтров
+
 const filteredExperts = computed(() => {
   return store.experts.filter(expert => {
     if (expert.status === 'pending') return false
@@ -158,27 +176,49 @@ const sortedExperts = computed(() => {
 const totalPages = computed(() => Math.ceil(sortedExperts.value.length / expertsPerPage))
 const paginatedExperts = computed(() => sortedExperts.value.slice(0, currentPage.value * expertsPerPage))
 const hasMoreExperts = computed(() => paginatedExperts.value.length < sortedExperts.value.length)
+const infiniteScrollEnabled = ref(false)
 
 function showMore() {
   if (!hasMoreExperts.value) return
   isLoadingMore.value = true
+
   setTimeout(() => {
     currentPage.value++
+
+    // Включаем бесконечный скролл после первого клика
+    infiniteScrollEnabled.value = true
+
     isLoadingMore.value = false
   }, 600)
 }
+
 
 function goToPage(page) {
   currentPage.value = page
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-function handleScroll(e) {
-  const { scrollTop, scrollHeight, clientHeight } = e.target
-  if (scrollTop + clientHeight >= scrollHeight - 100 && hasMoreExperts.value && !isLoadingMore.value) {
-    showMore()
+function handleScroll() {
+  if (!infiniteScrollEnabled.value) return
+
+  const scrollTop = window.scrollY
+  const clientHeight = window.innerHeight
+  const scrollHeight = document.documentElement.scrollHeight
+
+  if (
+    scrollTop + clientHeight >= scrollHeight - 200 &&
+    hasMoreExperts.value &&
+    !isLoadingMore.value
+  ) {
+    isLoadingMore.value = true
+    setTimeout(() => {
+      currentPage.value++
+      isLoadingMore.value = false
+    }, 600)
   }
 }
+
+
 
 onMounted(async () => {
   console.log('🏠 Главная страница загружена');
@@ -203,17 +243,30 @@ watch([searchQuery, filters], () => {
 })
 
 const goToExpert = (id) => router.push(`/experts/${id}`)
+
+// Бесконечный скролл
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll, { passive: true })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
+
 </script>
 
 <style scoped>
 .page-container {
-  height: 100vh;
-  overflow-y: auto;
   padding: 0 16px 40px;
   max-width: 1600px;
   margin: 0 auto;
-  box-sizing: border-box; /* Включаем padding в общую ширину */
+  box-sizing: border-box;
 }
+
+/* .page-container {
+  height: 100vh;
+  overflow-y: auto;
+} */
 
 /* ---------- Фон и шрифт ---------- */
 body {
@@ -284,6 +337,47 @@ body {
   background: #eee;
 }
 
+/* Верхняя панель: сортировка + кнопка фильтров */
+.top-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0 10px;
+  flex-wrap: wrap;
+}
+
+.filter-toggle {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.filter-toggle:hover {
+  background: #556cd6;
+}
+
+/* Скрывающиеся фильтры */
+/* Плавное раскрытие и скрытие фильтров */
+.filters {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, opacity 1s ease;
+}
+
+/* Когда фильтры открыты */
+.filters.open {
+  max-height: 500px; /* достаточно для всех фильтров */
+  opacity: 1;
+}
+
+
 /* ---------- Сетка карточек ---------- */
 .experts-list {
   display: grid;
@@ -339,14 +433,19 @@ body {
   color: white;
 }
 
-.sort-bar {
-  margin: 10px 0 20px 0;
-  text-align: center;
-}
+/* .sort-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin: 15px 0 20px;
+  flex-wrap: wrap;
+  
+} */
 .sort-bar select {
   padding: 6px 10px;
   border-radius: 6px;
-  border: 1px solid #ccc;
+  border: 1px solid #6a50fc;
   font-size: 14px;
 }
 
