@@ -15,7 +15,7 @@
             v-model="form.login" 
             type="text" 
             required 
-            placeholder="conversation_admin"
+            placeholder="Enter admin login"
             autocomplete="username"
           />
         </div>

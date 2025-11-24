@@ -142,7 +142,7 @@
           ★
         </span>
       </div>
-      <p>Текущий рейтинг: {{ expert.rating || 0 }}</p>
+      <p>Текущий рейтинг: {{ expert.rating.toFixed(1) || 0 }}</p>
     </div>
 
     <!-- Отзывы -->
@@ -303,21 +303,37 @@ const fetchExpert = async () => {
   }
 }
 
-// Обновление рейтинга
+// Обновление рейтинга с пересчётом среднего арифметического
 const setRating = async (star) => {
   if (!expert.value) return
-  expert.value.rating = star
-  newRating.value = star
+
+  // Инициализируем массив, если его нет
+  if (!Array.isArray(expert.value.rating)) {
+    expert.value.rating = []
+  }
+
+  // Добавляем новую оценку
+  expert.value.rating.push(star)
+
+  // Пересчитываем рейтинг
+  const newAverageRating = expert.value.rating.reduce((a, b) => a + b, 0) / expert.value.rating.length
+
+  // Обновляем локально
+  expert.value.rating = newAverageRating
+  newRating.value = newAverageRating
 
   try {
     await $fetch(`http://localhost:4000/experts/${expert.value.id}/rating`, {
       method: 'PATCH',
-      body: { rating: star }
+      body: {
+        ratings: expert.value.ratings  // отправляем массив полностью
+      }
     })
   } catch (error) {
     console.error('❌ Ошибка обновления рейтинга:', error)
   }
 }
+
 
 // Добавление отзыва
 const addReview = async () => {
@@ -613,7 +629,7 @@ onMounted(fetchExpert)
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(36, 36, 36, 0.2);
   border: none;
   color: white;
   font-size: 28px;

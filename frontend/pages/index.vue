@@ -48,7 +48,7 @@
   <label><input type="checkbox" v-model="filters.female" /> Женщины</label>
   <label><input type="checkbox" v-model="filters.adultTopics" /> Есть темы 18+</label>
   <label><input type="checkbox" v-model="filters.noForbidden" /> Нет запрещённых тем</label>
-  <label><input type="checkbox" v-model="filters.freeNow" /> Сейчас свободен</label>
+  <!-- <label><input type="checkbox" v-model="filters.freeNow" /> Сейчас свободен</label> -->
   <label><input type="checkbox" v-model="filters.alwaysAvailable" /> 24/7</label>
   <label><input type="checkbox" v-model="filters.verifiedExpert" /> Подтверждённый собеседник</label>
 </div>
@@ -110,7 +110,7 @@ const filters = ref({
   alwaysAvailable: false,
   verifiedExpert: false,
 })
-const expertsPerPage = 4
+const expertsPerPage = 10
 const currentPage = ref(1)
 const isLoadingMore = ref(false)
 
@@ -156,13 +156,18 @@ const sortOptions = [
 ]
 
 const sortedExperts = computed(() => {
-  const experts = [...filteredExperts.value] // создаём копию, чтобы не мутировать исходный массив
+  // создаём копию массива, чтобы не мутировать store.experts
+  const experts = [...filteredExperts.value]
 
   switch (sortOption.value) {
     case 'rating':
-      return experts.sort((a, b) => b.rating - a.rating)
+      return experts.sort((a, b) => (b.rating || 0) - (a.rating || 0))
     case 'reviews':
-      return experts.sort((a, b) => (b.reviews?.length || 0) - (a.reviews?.length || 0))
+      return experts.sort((a, b) => {
+        const reviewsA = Array.isArray(a.reviews) ? a.reviews.length : 0
+        const reviewsB = Array.isArray(b.reviews) ? b.reviews.length : 0
+        return reviewsB - reviewsA // от большего к меньшему
+      })
     case 'new':
       return experts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     case 'old':
@@ -171,6 +176,7 @@ const sortedExperts = computed(() => {
       return experts
   }
 })
+
 
 // страничная логика
 const totalPages = computed(() => Math.ceil(sortedExperts.value.length / expertsPerPage))

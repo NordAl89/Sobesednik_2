@@ -17,26 +17,20 @@
     <!-- Информация -->
     <div class="expert-info">
 <!-- <pre>{{ expert }}</pre>  -->
-      <h3>
-        {{ expert.name }} 
-         <span v-if="expert.alwaysAvailable" class="always-available">24/7</span>
-         <!-- Значок верификации -->
-          <img
-           v-if="verifiedExpert"
-            src="/images/verified_expert2.png"
-            alt="Проверенный эксперт"
-            class="verified-badge"
-          />
-      </h3>
+      <div class="name-rating">
+         <h3>{{ expert.name }}</h3>
+      ⭐ {{ expert.rating }}/5
+      </div> 
+     
       <p> <b>Возраст:</b> {{ expert.age }} {{ getAgeWord(expert.age) }}</p>
       <!-- <p>Пол: {{ expert.gender === 'male' ? 'Мужской' : 'Женский' }}</p> -->
 
-     <p class="status-text">
+     <!-- <p class="status-text">
         <b>Статус:</b> 
         <span :class="getStatusClass(expert.availability)">
           {{ getStatusText(expert.availability) }}
         </span>
-      </p>
+      </p> -->
 
       <p class="price"><span class="price_simple"><b>Цена от:</b></span> {{ expert.price }} руб/час</p>
 
@@ -47,6 +41,7 @@
       <div class="expert-tags">
         <span v-if="expert.adultTopics" class="tag tag-adult">18+</span>
         <span v-if="expert.noForbiddenTopics" class="tag tag-no-forbidden">Без запретов</span>
+        
       </div>
     </div>
   </div>
@@ -172,7 +167,11 @@ const getDefaultAvatar = () => '/images/expert-default.svg'
   color: #e67e22;
   font-weight: bold;
 }
-
+.name-rating {
+  display: flex;
+  justify-content: space-between; /* раскидывает по краям */
+  align-items: center;
+}
 h3 {
   margin: 0 0 6px 0;
   color: #2c3e50;

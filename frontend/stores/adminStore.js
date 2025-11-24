@@ -12,7 +12,7 @@ export const useAdminStore = defineStore('admin', {
       this.loading = true;
       try {
         // Проверяем credentials
-        if (loginData.login === 'conversation_admin' && loginData.password === '111') {
+        if (loginData.login === 'conversation_admin' && loginData.password === '1111') {
           this.isAuthenticated = true;
           this.loginTime = new Date().toISOString();
           

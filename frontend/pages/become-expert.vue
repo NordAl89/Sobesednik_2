@@ -186,17 +186,19 @@
     <!-- Модальное окно оплаты -->
     <div v-if="showPaymentModal" class="modal-overlay">
       <div class="payment-modal">
-        <h3>Оплата публикации анкеты</h3>
-        <p>
+        <h3>Уважаемый собеседник, благодарим Вас за публикацию анкеты!</h3>
+        <p><strong>Срок бесплатной публикации 60 дней</strong></p>
+        <!-- <h3>Оплата публикации анкеты</h3> -->
+        <!-- <p>
           Возникли сложности с оплатой? Воспользуйтесь 
           <a href="/faq" target="_blank" rel="noopener noreferrer" class="faq-link">FAQ</a>.
-        </p>
+        </p> -->
         
         <div class="payment-info">
-          <h4>Выберите срок публикации</h4>
+          <!-- <h4>Выберите срок публикации</h4> -->
   
           <!-- Ползунок выбора срока -->
-          <div class="slider-section">
+          <!-- <div class="slider-section">
             <button @click="selectedDays = Math.max(30, selectedDays - 30)">◀</button>
             <input 
               type="range"
@@ -206,21 +208,22 @@
               v-model="selectedDays"
             />
             <button @click="selectedDays = Math.min(360, selectedDays + 30)">▶</button>
-          </div>
+          </div> -->
         
-          <p><strong>Срок публикации:</strong> {{ selectedDays }} дней</p>
+          <!-- <p><strong>Срок публикации:</strong> {{ selectedDays }} дней</p>
           <p><strong>Сумма к оплате:</strong> {{ paymentAmount }} рублей</p>
           <p v-if="discountPercent > 0" class="discount-text">
             💰 Вы экономите {{ discountPercent }}%
           </p>
           <p><strong>Реквизиты:</strong> 2200 0000 0000 0000 (Тинькофф)</p>
           <p><strong>Код оплаты:</strong> <span class="payment-code">{{ paymentCode }}</span></p>
-          <p class="important">Обязательно укажите этот код в комментарии к платежу!</p>
+          <p class="important">Обязательно укажите этот код в комментарии к платежу!</p> -->
         </div>
 
         <div class="payment-actions">
           <button @click="confirmPayment" :disabled="paymentLoading" class="confirm-btn">
-            {{ paymentLoading ? 'Подтверждение...' : 'Оплата произведена' }}
+            <!-- {{ paymentLoading ? 'Подтверждение...' : 'Оплата произведена' }} -->
+            {{ paymentLoading ? 'Подтверждение...' : 'Опубликовать анкету' }}
           </button>
           <button @click="showPaymentModal = false" class="cancel-btn">Отмена</button>
         </div>
