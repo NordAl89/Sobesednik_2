@@ -15,35 +15,35 @@
       </div>
 
       <!-- 🟣 Раздел Company -->
-      <div class="footer-section">
+      <!-- <div class="footer-section">
         <h3>Компания</h3>
         <ul>
           <li>
             <NuxtLink to="/admin-login">Админ-панель</NuxtLink>
           </li>
         </ul>
-      </div>
+      </div> -->
 
       <!-- 🔵 Раздел Contacts -->
       <div class="footer-section">
         <h3>Контакты</h3>
         <ul>
-          <li>
+          <!-- <li>
             <a href="mailto:support@sobesednik.com">support@sobesednik.com</a>
-          </li>
+          </li> -->
           <li>
-            <a href="https://t.me/sobesednik_chat" target="_blank" rel="noopener">
+            <a href="https://t.me/Konstantin_Nor" target="_blank" rel="noopener">
               Telegram чат
             </a>
           </li>
-          <li>
+          <!-- <li>
             <a href="https://vk.com/sobesednik" target="_blank" rel="noopener">VK</a>
           </li>
           <li>
             <a href="https://www.instagram.com/sobesednik" target="_blank" rel="noopener">
               Instagram
             </a>
-          </li>
+          </li> -->
         </ul>
       </div>
     </div>
