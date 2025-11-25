@@ -14,14 +14,10 @@
       </div>
     </div>
     <!-- Поиск -->
-      <div class="search-group">
-        <input
-          type="text"
-          v-model="searchQuery"
-          placeholder="Поиск по имени, логину или Telegram..."
-          class="search-input"
-        />
-      </div>
+    <div class="search-group">
+      <input type="text" v-model="searchQuery" placeholder="Поиск по имени, логину или Telegram..."
+        class="search-input" />
+    </div>
 
 
     <!-- Фильтры -->
@@ -37,7 +33,7 @@
           <option value="rejected">Отклоненные</option>
         </select>
       </div>
-      
+
       <button @click="refreshData" class="refresh-btn">
         🔄 Обновить данные
       </button>
@@ -74,7 +70,7 @@
         <div class="spinner"></div>
         <p>Загрузка данных...</p>
       </div>
-      
+
       <div v-else-if="filteredExperts.length === 0" class="empty-state">
         <div class="empty-icon">📭</div>
         <h3>Нет анкет с выбранным фильтром</h3>
@@ -82,12 +78,7 @@
       </div>
 
       <div v-else class="expert-cards">
-        <div 
-          v-for="expert in filteredExperts" 
-          :key="expert.id" 
-          class="expert-card"
-          :class="expert.status"
-        >
+        <div v-for="expert in filteredExperts" :key="expert.id" class="expert-card" :class="expert.status">
           <div class="expert-header">
             <h3>{{ expert.name }}</h3>
             <span :class="`status-badge status-${expert.status}`">
@@ -145,66 +136,40 @@
           </div>
 
           <div class="admin-actions">
-            <button 
-              v-if="expert.status === 'pending'" 
-              @click="approveExpert(expert.id)"
-              class="action-btn approve-btn"
-              title="Одобрить анкету"
-            >
+            <button v-if="expert.status === 'pending'" @click="approveExpert(expert.id)" class="action-btn approve-btn"
+              title="Одобрить анкету">
               ✅ Одобрить
             </button>
-            <button               
-              @click="extendPublicationt(expert.id)"
-              class="action-btn extend-publicationt-btn"
-              title="Продлить публикацию"
-            >
+            <button @click="extendPublicationt(expert.id)" class="action-btn extend-publicationt-btn"
+              title="Продлить публикацию">
               Продлить
             </button>
-            <button 
-              v-if="expert.status === 'pending'" 
-              @click="rejectExpert(expert.id)"
-              class="action-btn reject-btn"
-              title="Отклонить анкету"
-            >
+            <button v-if="expert.status === 'pending'" @click="rejectExpert(expert.id)" class="action-btn reject-btn"
+              title="Отклонить анкету">
               ❌ Отклонить
             </button>
-            <button 
-              v-if="expert.telegram"
-              @click="contactExpert(expert)" 
-              class="action-btn contact-btn"
-              title="Связаться в Telegram"
-            >
+            <button v-if="expert.telegram" @click="contactExpert(expert)" class="action-btn contact-btn"
+              title="Связаться в Telegram">
               📞 Связаться
             </button>
-            <button 
-              @click="viewDetails(expert.id)" 
-              class="action-btn details-btn"
-              title="Посмотреть детали"
-            >
+            <button @click="viewDetails(expert.id)" class="action-btn details-btn" title="Посмотреть детали">
               👁️ Подробнее
             </button>
-            <button 
-              v-if="expert.status !== 'blocked'" 
-               @click="blockExpert(expert.id)" 
-               class="action-btn block-btn"
-               title="Заблокировать анкету"
-            >
-             🚫 Заблокировать
+            <button v-if="expert.status !== 'blocked'" @click="blockExpert(expert.id)" class="action-btn block-btn"
+              title="Заблокировать анкету">
+              🚫 Заблокировать
             </button>
 
-            <button 
-             @click="deleteExpert(expert.id)" 
-             class="action-btn delete-btn"
-             title="Удалить анкету"
-            >
+            <button @click="deleteExpert(expert.id)" class="action-btn delete-btn" title="Удалить анкету">
               🗑️ Удалить
             </button>
-             <button 
-             @click="verifyExpert(expert.id)" 
-             class="action-btn verify-btn"
-             title="Подтвердить анкету"
-            >
+            <button v-if="!expert.expertIsVerified" @click="verifyExpert(expert.id)" class="action-btn verify-btn"
+              title="Подтвердить через онлайн-встречу">
               🛡️ Вериф
+            </button>
+
+            <button v-else @click="unverifyExpert(expert.id)" class="action-btn unverify-btn" title="Снять верификацию">
+              ⚠️ Снять вериф
             </button>
 
           </div>
@@ -233,21 +198,21 @@ const loadExperts = async () => {
     // Пробуем использовать специальный endpoint для админа
     console.log('🔄 Попытка загрузить данные через /experts/admin/all...');
     let response;
-    
+
     try {
       response = await $fetch('http://localhost:4000/experts/admin/all')
       console.log('✅ Данные загружены через admin endpoint');
     } catch (adminError) {
       console.warn('⚠️ Admin endpoint недоступен, используем fallback:', adminError.message);
       console.log('🔄 Загрузка через обычный endpoint /experts...');
-      
+
       // Fallback: используем обычный endpoint (но он вернет только активных)
       // ВРЕМЕННОЕ РЕШЕНИЕ: Нужно перезапустить бэкенд для работы admin endpoint
       response = await $fetch('http://localhost:4000/experts')
-      
+
       alert('⚠️ ВНИМАНИЕ: Бэкенд нужно перезапустить!\nСейчас показаны только активные анкеты.\nПерезапустите backend командой: npm run start:dev')
     }
-    
+
     // Проверяем, что response - это массив
     if (!Array.isArray(response)) {
       console.error('❌ Ответ сервера не является массивом:', response);
@@ -255,10 +220,10 @@ const loadExperts = async () => {
       alert('Ошибка: сервер вернул некорректные данные');
       return;
     }
-    
+
     experts.value = response
     console.log('✅ Загружено экспертов:', experts.value.length)
-    
+
     // Отладочная информация
     if (experts.value.length > 0) {
       console.log('📋 Пример данных эксперта:', {
@@ -297,7 +262,7 @@ const filteredExperts = computed(() => {
     console.warn('⚠️ experts.value не является массивом:', experts.value);
     return [];
   }
-  
+
   return experts.value.filter(expert => {
     const matchesStatus = !statusFilter.value || expert.status === statusFilter.value
     const query = searchQuery.value.toLowerCase().trim()
@@ -323,22 +288,22 @@ const activeCount = computed(() => {
 // Действия администратора
 const approveExpert = async (expertId) => {
   if (!confirm('Вы уверены, что хотите одобрить эту анкету?')) return
-  
+
   try {
     console.log('✅ Одобрение эксперта:', expertId)
-    
+
     const response = await $fetch(`http://localhost:4000/experts/admin/${expertId}/approve`, {
       method: 'POST'
     })
-    
+
     console.log('✅ Ответ от сервера:', response)
-    
+
     // Обновляем локальные данные
     const index = experts.value.findIndex(e => e.id === expertId)
     if (index !== -1) {
       experts.value[index] = { ...experts.value[index], ...response }
     }
-    
+
     alert('Анкета одобрена и опубликована!')
   } catch (error) {
     console.error('❌ Ошибка одобрения:', error)
@@ -357,23 +322,23 @@ const extendPublicationt = async (expertId) => {
 const rejectExpert = async (expertId) => {
   const reason = prompt('Укажите причину отклонения:')
   if (!reason) return
-  
+
   try {
     console.log('❌ Отклонение эксперта:', expertId, 'Причина:', reason)
-    
+
     const response = await $fetch(`http://localhost:4000/experts/admin/${expertId}/reject`, {
       method: 'POST',
       body: { reason }
     })
-    
+
     console.log('✅ Ответ от сервера:', response)
-    
+
     // Обновляем локальные данные
     const index = experts.value.findIndex(e => e.id === expertId)
     if (index !== -1) {
       experts.value[index] = { ...experts.value[index], ...response }
     }
-    
+
     alert('Анкета отклонена!')
   } catch (error) {
     console.error('❌ Ошибка отклонения:', error)
@@ -417,6 +382,60 @@ const blockExpert = async (expertId) => {
   }
 }
 
+// Верификация эксперта "Подтверждённый собеседник"
+const verifyExpert = async (expertId) => {
+  if (!confirm('Вы уверены, что хотите верифицировать эту анкету?')) return
+
+  try {
+    const response = await $fetch(`http://localhost:4000/experts/admin/${expertId}/verify`, {
+      method: 'POST'
+    })
+
+    console.log('✅ Анкета верифицирована:', response)
+
+    const index = experts.value.findIndex(e => e.id === expertId)
+    if (index !== -1) {
+      experts.value[index] = { ...experts.value[index], status: 'verified' }
+    }
+
+    alert('Анкета верифицирована!')
+  } catch (error) {
+    console.error('❌ Ошибка верификации:', error)
+    alert('Ошибка при верификации анкеты: ' + (error.data?.message || error.message))
+  } finally {
+    try {
+      const response = await $fetch(`http://localhost:4000/experts/${expertId}`)
+      console.log('✅ Анкета после верификации:', response)
+    } catch (error) {
+      console.error('❌ Ошибка получения данных после верификации:', error)
+      alert('Ошибка при получении данных после верификации: ' + (error.data?.message || error.message))
+    }
+  }
+}
+// Снятие верификации
+const unverifyExpert = async (expertId) => {
+  if (!confirm('Вы уверены, что хотите снять верификацию с этого собеседника?')) return
+
+  try {
+    const response = await $fetch(`http://localhost:4000/experts/admin/${expertId}/unverify`, {
+      method: 'POST'
+    })
+
+    console.log('🚫 Верификация снята:', response)
+
+    // Обновляем локальные данные
+    const index = experts.value.findIndex(e => e.id === expertId)
+    if (index !== -1) {
+      experts.value[index].expertIsVerified = false
+    }
+
+    alert('🚫 Верификация собеседника снята!')
+  } catch (error) {
+    console.error('❌ Ошибка снятия верификации:', error)
+    alert('Ошибка при снятии верификации: ' + (error.data?.message || error.message))
+  }
+}
+
 // Удаление анкеты
 const deleteExpert = async (expertId) => {
   if (!confirm('Вы уверены, что хотите УДАЛИТЬ анкету? Это действие необратимо!')) return
@@ -448,16 +467,16 @@ const getStatusText = (status) => {
 
 const formatDate = (dateString) => {
   if (!dateString) return 'Дата не указана'
-  
+
   try {
     const date = new Date(dateString)
-    
+
     // Проверка на валидность даты
     if (isNaN(date.getTime())) {
       console.warn('Invalid date:', dateString)
       return 'Неверный формат даты'
     }
-    
+
     return date.toLocaleDateString('ru-RU', {
       day: '2-digit',
       month: '2-digit',
@@ -473,7 +492,7 @@ const formatDate = (dateString) => {
 // Добавьте также функцию для отображения относительного времени
 const formatRelativeTime = (dateString) => {
   if (!dateString) return ''
-  
+
   try {
     const date = new Date(dateString)
     const now = new Date()
@@ -481,13 +500,13 @@ const formatRelativeTime = (dateString) => {
     const diffMins = Math.floor(diffMs / (1000 * 60))
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-    
+
     if (diffMins < 1) return 'только что'
     if (diffMins < 60) return `${diffMins} мин. назад`
     if (diffHours < 24) return `${diffHours} ч. назад`
     if (diffDays === 1) return 'вчера'
     if (diffDays < 7) return `${diffDays} дн. назад`
-    
+
     return formatDate(dateString)
   } catch (error) {
     return formatDate(dateString)
@@ -833,9 +852,11 @@ onMounted(() => {
   background: #2366a5;
   color: white;
 }
+
 .extend-publicationt-btn:hover {
   background: #5f8ac2;
 }
+
 .reject-btn {
   background: #e74c3c;
   color: white;
@@ -872,6 +893,7 @@ onMounted(() => {
   background: #f39c12;
   color: white;
 }
+
 .block-btn:hover {
   background: #d68910;
 }
@@ -880,17 +902,27 @@ onMounted(() => {
   background: #e74c3c;
   color: white;
 }
+
 .delete-btn:hover {
   background: #c0392b;
 }
+
 .verify-btn {
   background: #389462;
   color: white;
 }
+
 .verify-btn:hover {
   background: #05a139;
 }
 
+.unverify-btn {
+  background: #f39c12;
+  color: white;
+}
+.unverify-btn:hover {
+  background: #d68910;
+}
 .spinner {
   width: 40px;
   height: 40px;
@@ -902,8 +934,13 @@ onMounted(() => {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .empty-state {

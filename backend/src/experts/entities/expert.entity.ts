@@ -83,6 +83,9 @@ export class Expert {
   @Column({ default: false })
   alwaysAvailable!: boolean;
 
+  @Column({ default: false })
+  expertIsVerified!: boolean; // Новое поле для верификации через встречу
+
   @Column({ type: 'text', nullable: true })
   reviews?: string; // Храним отзывы как JSON строку
 

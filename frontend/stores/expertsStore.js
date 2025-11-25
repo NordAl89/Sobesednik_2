@@ -103,10 +103,12 @@ export const useExpertsStore = defineStore('experts', {
           price: parseFloat(formData.get('price')),
           adultTopics: formData.get('adultTopics') === 'true',
           noForbiddenTopics: formData.get('noForbiddenTopics') === 'true',
-          paymentCode: formData.get('paymentCode'),
-          status: 'pending',
           alwaysAvailable: formData.get('alwaysAvailable') === 'true',
           verifiedExpert: formData.get('verifiedExpert') === 'true',
+          expertIsVerified: formData.get('expertIsVerified') === 'true',
+          paymentCode: formData.get('paymentCode'),
+          status: 'pending',
+         
         };
 
         return await this.addExpert(expertData);

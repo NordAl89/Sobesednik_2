@@ -479,4 +479,26 @@ private async moveFilesToExpertFolder(
   private async saveData(): Promise<void> {
     return;
   }  
+
+  // Верификация эксперта через онлайн-встречу
+async verifyExpert(expertId: string): Promise<Expert> {
+  const expert = await this.findOne(expertId);
+  expert.expertIsVerified = true;
+  const savedExpert = await this.expertsRepository.save(expert);
+  await this.saveData();
+  
+  console.log(`✅ Эксперт ${expertId} верифицирован через встречу`);
+  return savedExpert;
+}
+
+// Снятие верификации эксперта
+async unverifyExpert(expertId: string): Promise<Expert> {
+  const expert = await this.findOne(expertId);
+  expert.expertIsVerified = false;
+  const savedExpert = await this.expertsRepository.save(expert);
+  await this.saveData();
+  
+  console.log(`🚫 Верификация эксперта ${expertId} снята`);
+  return savedExpert;
+}
 }

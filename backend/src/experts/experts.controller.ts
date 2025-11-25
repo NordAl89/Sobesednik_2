@@ -331,6 +331,7 @@ export class ExpertsController {
       rating: expert.rating,
       totalSessions: expert.totalSessions,
       adminVerified: expert.adminVerified,
+      expertIsVerified: expert.expertIsVerified,
       status: expert.status,
       telegram: expert.telegram,
       otherMessengers: expert.otherMessengers,
@@ -365,6 +366,7 @@ export class ExpertsController {
       mainPhotoUrl: expert.mainPhotoUrl,
       rating: expert.rating,
       totalSessions: expert.totalSessions,
+      expertIsVerified: expert.expertIsVerified,
       status: expert.status,
       adminVerified: expert.adminVerified,
       telegram: expert.telegram,
@@ -402,6 +404,7 @@ export class ExpertsController {
       totalSessions: expert.totalSessions,
       status: expert.status,
       adminVerified: expert.adminVerified,
+      expertIsVerified: expert.expertIsVerified,
       telegram: expert.telegram,
       otherMessengers: expert.otherMessengers,
       allowedTopics: expert.allowedTopics,
@@ -455,6 +458,7 @@ export class ExpertsController {
       rating: expert.rating,
       totalSessions: expert.totalSessions,
       adminVerified: expert.adminVerified,
+      expertIsVerified: expert.expertIsVerified,
       status: expert.status,
       telegram: expert.telegram,
       otherMessengers: expert.otherMessengers,
@@ -589,4 +593,32 @@ export class ExpertsController {
       reviews: reviews
     };
   }
+
+  // Верификация эксперта через встречу
+@Post('admin/:id/verify')
+async verifyExpert(@Param('id') id: string) {
+  console.log('✅ Верификация эксперта через встречу:', id);
+  
+  const expert = await this.expertsService.verifyExpert(id);
+  console.log('✅ Эксперт верифицирован:', expert);
+  
+  return {
+    id: expert.id,
+    expertIsVerified: expert.expertIsVerified
+  };
+}
+
+// Снятие верификации эксперта
+@Post('admin/:id/unverify')
+async unverifyExpert(@Param('id') id: string) {
+  console.log('🚫 Снятие верификации эксперта:', id);
+  
+  const expert = await this.expertsService.unverifyExpert(id);
+  console.log('✅ Верификация снята:', expert);
+  
+  return {
+    id: expert.id,
+    expertIsVerified: expert.expertIsVerified
+  };
+}
 }

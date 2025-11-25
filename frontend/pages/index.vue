@@ -3,7 +3,7 @@
     <div class="compact-hero">
       <div class="compact-hero-content">
         <p class="compact-hero-text">
-          Собеседник — место, где каждый может найти искреннего друга, поддержку и понимание
+         Собеседник&nbsp;&mdash; место, где каждый может найти искреннего друга, поддержку&nbsp;и&nbsp;понимание.
         </p>
       </div>
     </div>

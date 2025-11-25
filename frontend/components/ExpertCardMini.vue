@@ -41,6 +41,7 @@
       <div class="expert-tags">
         <span v-if="expert.adultTopics" class="tag tag-adult">18+</span>
         <span v-if="expert.noForbiddenTopics" class="tag tag-no-forbidden">Без запретов</span>
+        <span v-if="expert.expertIsVerified" class="tag tag-is-verified">Подтверждён</span>
         
       </div>
     </div>
@@ -249,7 +250,10 @@ p {
   color: white;
 }
 
-
+.tag-is-verified {
+  background-color: #ca9c02;
+  color: white;
+}
 /* ---------- 📱 АДАПТИВНОСТЬ ---------- */
 
 /* === Маленькие смартфоны (до 375px) === */

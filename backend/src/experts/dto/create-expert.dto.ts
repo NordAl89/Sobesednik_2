@@ -76,4 +76,8 @@ export class CreateExpertDto {
   @IsString()
   @IsOptional()
   status?: string; // Оставили для статуса публикации
+
+  @IsBoolean()
+  @IsOptional()
+  expertIsVerified?: boolean; // Верификация эксперта
 }

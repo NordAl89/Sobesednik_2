@@ -266,6 +266,8 @@ const form = ref({
   adultTopics: false,
   noForbiddenTopics: false,
   alwaysAvailable: false,
+  expertIsVerified: false,
+
 })
 
 // Данные для файлов
