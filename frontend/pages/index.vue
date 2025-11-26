@@ -48,9 +48,9 @@
   <label><input type="checkbox" v-model="filters.female" /> Женщины</label>
   <label><input type="checkbox" v-model="filters.adultTopics" /> Есть темы 18+</label>
   <label><input type="checkbox" v-model="filters.noForbidden" /> Нет запрещённых тем</label>
-  <!-- <label><input type="checkbox" v-model="filters.freeNow" /> Сейчас свободен</label> -->
+  <label><input type="checkbox" v-model="filters.freeNow" /> Сейчас свободен</label>
   <label><input type="checkbox" v-model="filters.alwaysAvailable" /> 24/7</label>
-  <label><input type="checkbox" v-model="filters.verifiedExpert" /> Подтверждённый собеседник</label>
+  <label><input type="checkbox" v-model="filters.expertIsVerified" /> Подтверждённый собеседник</label>
 </div>
 
 
@@ -108,7 +108,7 @@ const filters = ref({
   noForbidden: false,
   freeNow: false,
   alwaysAvailable: false,
-  verifiedExpert: false,
+  expertIsVerified: false,
 })
 const expertsPerPage = 10
 const currentPage = ref(1)
@@ -140,7 +140,7 @@ const filteredExperts = computed(() => {
     if (filters.value.noForbidden && !expert.noForbiddenTopics) return false
     if (filters.value.freeNow && expert.availability !== 'Свободен') return false
     if (filters.value.alwaysAvailable && !expert.alwaysAvailable) return false
-    if (filters.value.verifiedExpert && !expert.verifiedExpert) return false
+    if (filters.value.expertIsVerified && !expert.expertIsVerified) return false
 
     return true
   })

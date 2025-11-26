@@ -19,18 +19,19 @@
 <!-- <pre>{{ expert }}</pre>  -->
       <div class="name-rating">
          <h3>{{ expert.name }}</h3>
-      ⭐ {{ expert.rating }}/5
+         <span v-if="expert.alwaysAvailable" class="always-available">24/7</span>
+        ⭐ {{ expert.rating }}/5
       </div> 
      
       <p> <b>Возраст:</b> {{ expert.age }} {{ getAgeWord(expert.age) }}</p>
       <!-- <p>Пол: {{ expert.gender === 'male' ? 'Мужской' : 'Женский' }}</p> -->
 
-     <!-- <p class="status-text">
+      <p class="status-text">
         <b>Статус:</b> 
         <span :class="getStatusClass(expert.availability)">
           {{ getStatusText(expert.availability) }}
         </span>
-      </p> -->
+      </p>
 
       <p class="price"><span class="price_simple"><b>Цена от:</b></span> {{ expert.price }} руб/час</p>
 
@@ -42,6 +43,7 @@
         <span v-if="expert.adultTopics" class="tag tag-adult">18+</span>
         <span v-if="expert.noForbiddenTopics" class="tag tag-no-forbidden">Без запретов</span>
         <span v-if="expert.expertIsVerified" class="tag tag-is-verified">Подтверждён</span>
+        
         
       </div>
     </div>
