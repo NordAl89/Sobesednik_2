@@ -9,7 +9,8 @@ import {
   NotFoundException,
   Patch,
   UseInterceptors,
-  UploadedFiles
+  UploadedFiles,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ExpertsService } from './experts.service';
@@ -615,6 +616,31 @@ async findAll() {
     return {
       id: expert.id,
       reviews: reviews
+    };
+  }
+
+  // Удаление отзыва экспертом - используем POST чтобы не конфликтовать с DELETE эксперта
+  @Post(':expertId/reviews/:reviewIndex/delete')
+  async deleteReview(
+    @Param('expertId') expertId: string,
+    @Param('reviewIndex') reviewIndex: string // Принимаем как строку
+  ) {
+    console.log(`🗑️ Эксперт ${expertId} удаляет отзыв с индексом ${reviewIndex}`);
+    
+    // Преобразуем в число
+    const index = parseInt(reviewIndex, 10);
+    
+    // Проверяем, что преобразование прошло успешно
+    if (isNaN(index)) {
+      throw new BadRequestException('Неверный индекс отзыва');
+    }
+    
+    const expert = await this.expertsService.deleteReview(expertId, index);
+    
+    return {
+      success: true,
+      message: 'Отзыв удален',
+      reviews: expert.reviews ? JSON.parse(expert.reviews) : []
     };
   }
 

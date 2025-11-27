@@ -83,6 +83,36 @@
         </div>
       </div>
 
+       <!-- Добавляем секцию с отзывами -->
+      <div class="reviews-section" v-if="expert.reviews && expert.reviews.length > 0">
+        <h3>Отзывы на вашей странице</h3>
+        
+        <div class="reviews-list">
+          <div 
+            v-for="(review, index) in expert.reviews" 
+            :key="index" 
+            class="review-item"
+          >
+            <div class="review-content">
+              <p class="review-text">{{ review.text }}</p>
+              <small class="review-date">{{ formatDate(review.date) }}</small>
+            </div>
+            
+            <button 
+              @click="deleteReview(index)" 
+              class="delete-review-btn"
+              title="Удалить отзыв"
+            >
+              🗑️ Удалить
+            </button>
+          </div>
+        </div>
+        
+        <p v-if="expert.reviews.length === 0" class="no-reviews">
+          Пока нет отзывов на вашу анкету
+        </p>
+      </div>
+
       <!-- Действия -->
       <div class="action-section" v-if="!isExpired">
         <h3>Действия</h3>
@@ -209,6 +239,11 @@ onMounted(async () => {
     const response = await $fetch(`http://localhost:4000/experts/${expertId}`);
     expert.value = response;
 
+    // Инициализируем reviews если их нет
+    if (!expert.value.reviews) {
+      expert.value.reviews = [];
+    }
+
     startCountdown();
   } catch (error) {
     console.error('Ошибка загрузки профиля:', error);
@@ -216,6 +251,7 @@ onMounted(async () => {
   } finally {
     loading.value = false;
   }
+  
 });
 
 onUnmounted(() => {
@@ -347,6 +383,28 @@ const formatDate = (dateString) => {
     });
   } catch {
     return 'ошибка формата';
+  }
+};
+
+// Удаление отзыва
+const deleteReview = async (reviewIndex) => {
+  if (!confirm('Вы уверены, что хотите удалить этот отзыв?')) return;
+
+  try {
+    const response = await $fetch(
+      `http://localhost:4000/experts/${expert.value.id}/reviews/${reviewIndex}/delete`, 
+      {
+        method: 'POST' // Изменено с DELETE на POST
+      }
+    );
+
+    // Обновляем локальные данные
+    expert.value.reviews = response.reviews;
+    
+    console.log('✅ Отзыв удален');
+  } catch (error) {
+    console.error('❌ Ошибка при удалении отзыва:', error);
+    alert('Не удалось удалить отзыв. Попробуйте снова.');
   }
 };
 </script>
@@ -549,6 +607,88 @@ const formatDate = (dateString) => {
   color: #333;
   border-bottom: 1px solid #ddd;
   padding-bottom: 10px;
+}
+
+/* Стили для секции отзывов */
+.reviews-section {
+  margin: 3rem 0;
+  padding: 2rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  background: #f9f9f9;
+}
+
+.reviews-section h3 {
+  margin: 0 0 1.5rem 0;
+  color: #2c3e50;
+  font-size: 1.5rem;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 0.5rem;
+}
+
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.review-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.review-item:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.review-content {
+  flex: 1;
+}
+
+.review-text {
+  color: #333;
+  line-height: 1.6;
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+}
+
+.review-date {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+/* Кнопка удаления отзыва */
+.delete-review-btn {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.delete-review-btn:hover {
+  background: #c0392b;
+  transform: translateY(-1px);
+}
+
+.no-reviews {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 2rem;
+  background: white;
+  border-radius: 8px;
 }
 
 /* Секция действий */
@@ -775,5 +915,27 @@ const formatDate = (dateString) => {
     gap: 10px;
     text-align: center;
   }
+
+   .review-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .delete-review-btn {
+    align-self: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .review-item {
+    padding: 1rem;
+  }
+  
+  .review-text {
+    font-size: 0.9rem;
+  }
+
+
 }
 </style>

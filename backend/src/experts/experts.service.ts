@@ -501,4 +501,31 @@ async unverifyExpert(expertId: string): Promise<Expert> {
   console.log(`🚫 Верификация эксперта ${expertId} снята`);
   return savedExpert;
 }
+// Удаление отзывов 
+ async deleteReview(expertId: string, reviewIndex: number): Promise<Expert> {
+    const expert = await this.findOne(expertId);
+    
+    if (!expert.reviews) {
+      throw new NotFoundException('Отзывы не найдены');
+    }
+
+    const reviews = JSON.parse(expert.reviews);
+    
+    // Проверяем, существует ли отзыв с таким индексом
+    if (reviewIndex < 0 || reviewIndex >= reviews.length) {
+      throw new NotFoundException('Отзыв не найден');
+    }
+
+    // Удаляем отзыв из массива
+    reviews.splice(reviewIndex, 1);
+    
+    expert.reviews = JSON.stringify(reviews);
+    await this.expertsRepository.save(expert);
+
+    console.log(`✅ Отзыв с индексом ${reviewIndex} удален экспертом ${expert.name}`);
+
+    return expert;
+  }
+
+
 }

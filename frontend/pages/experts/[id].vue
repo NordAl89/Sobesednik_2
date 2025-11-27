@@ -146,50 +146,45 @@
     </div>
 
     <!-- Отзывы -->
-  <div class="reviews">
-    <h3>Отзывы</h3>
-    
-    <!-- Поле для отзыва с валидацией -->
-    <div class="review-input-container">
-      <textarea 
-        v-model="newReview" 
-        @input="handleReviewInput"
-        placeholder="Напишите отзыв (минимум 6 символов)..." 
-        rows="3"
-        :class="{ error: reviewError }"
-      ></textarea>
+    <div class="reviews">
+      <h3>Отзывы</h3>
       
-      <!-- Счетчик символов -->
-      <div class="character-counter" :class="{ 'limit-reached': newReview.length >= 500 }">
-        {{ newReview.length }}/500
+      <!-- Форма добавления отзыва -->
+      <div class="review-input-container">
+        <textarea 
+          v-model="newReview" 
+          @input="handleReviewInput"
+          placeholder="Напишите отзыв (минимум 6 символов)..." 
+          rows="3"
+          :class="{ error: reviewError }"
+        ></textarea>
+        
+        <div class="character-counter" :class="{ 'limit-reached': newReview.length >= 500 }">
+          {{ newReview.length }}/500
+        </div>
+        
+        <div v-if="reviewError" class="error-message">
+          {{ reviewError }}
+        </div>
       </div>
       
-      <!-- Сообщение об ошибке -->
-      <div v-if="reviewError" class="error-message">
-        {{ reviewError }}
-      </div>
-    </div>
-    
-    <button 
-      @click="addReview" 
-      :disabled="!newReview.trim() || newReview.trim().length < 6 || newReview.length > 500"
-      class="review-submit-btn"
-    >
-      Добавить отзыв
-    </button>
+      <button 
+        @click="addReview" 
+        :disabled="!newReview.trim() || newReview.trim().length < 6 || newReview.length > 500"
+        class="review-submit-btn"
+      >
+        Добавить отзыв
+      </button>
 
-    <div v-if="expert.reviews && expert.reviews.length > 0" class="review-list">
-      <div v-for="(review, index) in expert.reviews" :key="index" class="review-item">
-        <p class="review-text">{{ review.text }}</p>
-        <small class="review-date">{{ review.date }}</small>
+      <!-- Список отзывов -->
+      <div v-if="expert.reviews && expert.reviews.length > 0" class="review-list">
+        <div v-for="(review, index) in expert.reviews" :key="index" class="review-item">
+          <p class="review-text">{{ review.text }}</p>
+          <small class="review-date">{{ review.date }}</small>
+        </div>
       </div>
+      <p v-else class="no-reviews">Пока нет отзывов. Будьте первым!</p>
     </div>
-    <p v-else class="no-reviews">Пока нет отзывов. Будьте первым!</p>
-  </div>
-  </div>
-
-  <div v-else>
-    <p>Собеседник не найден.</p>
   </div>
 </template>
 
