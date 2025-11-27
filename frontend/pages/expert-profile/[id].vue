@@ -43,13 +43,13 @@
         <div class="info-section">
           <h3>Основная информация</h3>
           <!-- Таймер обратного отсчета -->
-            <div v-if="!isExpired && timeLeft > 0" class="countdown-timer">
-             ⏰ До окончания публикации: {{ formattedTime }}
-            </div>
-            <div v-else-if="isExpired" class="expired-banner">
-              ⚠️ Срок публикации вашей анкеты истек. Анкета будет удалена.
-            </div>
-          <p><strong>Статус анкеты: </strong> 
+          <div v-if="!isExpired && timeLeft > 0" class="countdown-timer">
+            ⏰ До окончания публикации: {{ formattedTime }}
+          </div>
+          <div v-else-if="isExpired" class="expired-banner">
+            ⚠️ Срок публикации вашей анкеты истек. Анкета будет удалена.
+          </div>
+          <p><strong>Статус анкеты: </strong>
             <span :class="statusClass">{{ getStatusText(expert.status) }}</span>
           </p>
           <p><strong>Возраст:</strong> {{ expert.age }} лет</p>
@@ -57,7 +57,7 @@
           <p v-if="expert.publicationDays"><strong>Срок публикации:</strong> {{ expert.publicationDays }} дней</p>
           <p><strong>Опубликована:</strong> {{ formatDate(expert.publishedAt) }}</p>
           <p><strong>Действует до:</strong> {{ formatDate(expert.expiresAt) }}</p>
-         
+
         </div>
 
         <div class="info-section">
@@ -79,15 +79,16 @@
           <h3>Контактная информация</h3>
           <p><strong>Telegram:</strong> {{ expert.telegram || 'Не указан' }}</p>
           <p v-if="expert.otherMessengers"><strong>Другие мессенджеры:</strong> {{ expert.otherMessengers }}</p>
-          
+
         </div>
       </div>
 
       <!-- Действия -->
       <div class="action-section" v-if="!isExpired">
         <h3>Действия</h3>
-        <p>Для верификации данных (необязательная процедура) и по другим вопросам вы можете связаться с администратором. Возможно, ответы на Ваши вопросы уже есть в нашем
-         <NuxtLink to="/faq" class="faq-link">FAQ</NuxtLink>. 
+        <p>Для верификации данных (необязательная процедура) и по другим вопросам вы можете связаться с администратором.
+          Возможно, ответы на Ваши вопросы уже есть в нашем
+          <NuxtLink to="/faq" class="faq-link">FAQ</NuxtLink>.
         </p>
         <div class="action-buttons">
           <button @click="requestModeration" class="moderation-btn" v-if="expert.status === 'draft'">
@@ -102,8 +103,9 @@
           <button @click="toMyProfile" class="to-my-profile-btn">
             Моя анкета
           </button>
-          <button @click="profileStausSwitcher" class="profileStausSwitcher-btn">
-            Свободен
+          <button @click="profileStausSwitcher" :class="['status-switcher-btn', statusButtonClass]"
+            :disabled="expert.status !== 'active'">
+            {{ statusButtonText }}
           </button>
           <button @click="deleteProfile" class="delete-btn">
             Удалить анкету
@@ -111,7 +113,7 @@
         </div>
       </div>
 
-      
+
 
       <button @click="logout" class="logout-btn">
         Выйти
@@ -179,7 +181,7 @@ const checkExpertStatus = async () => {
   try {
     const response = await $fetch(`http://localhost:4000/experts/${expert.value.id}`);
     // Обновляем статус на expired
-    await expertsStore.updateExpertProfile(expert.value.id, { 
+    await expertsStore.updateExpertProfile(expert.value.id, {
       status: 'expired',
       availability: 'Неактивен'
     });
@@ -197,7 +199,7 @@ const checkExpertStatus = async () => {
 // Загрузка данных эксперта
 onMounted(async () => {
   const expertId = route.params.id;
-  
+
   try {
     if (!expertsStore.currentExpert || expertsStore.currentExpert.id !== expertId) {
       await router.push('/expert-login');
@@ -251,10 +253,49 @@ const toMyProfile = () => {
   router.push(`/experts/${expertsStore.currentExpert.id}?edit=${expert.value.id}`);
 };
 
-const profileStausSwitcher = () => {
-  alert('Здесь нужно сделать переключатель Свободен/Занят для мини карты и детальной карты эксперта');
+// Изменение статуса эксперта Свободен/Занят. Начало
+const profileStausSwitcher = async () => {
+  try {
+    const currentAvailability = expert.value.availability;
+    const newAvailability = currentAvailability === 'Свободен' ? 'Занят' : 'Свободен';
+
+    // Обновляем локально для мгновенного отклика
+    expert.value.availability = newAvailability;
+
+    // Отправляем запрос на сервер
+    const response = await $fetch(`http://localhost:4000/experts/${expert.value.id}`, {
+      method: 'PATCH',
+      body: {
+        availability: newAvailability
+      }
+    });
+
+    // Обновляем в хранилище
+    if (expertsStore.currentExpert) {
+      expertsStore.currentExpert.availability = newAvailability;
+    }
+
+    console.log(`✅ Статус изменен на: ${newAvailability}`);
+
+  } catch (error) {
+    console.error('❌ Ошибка при изменении статуса:', error);
+    // Возвращаем предыдущее значение в случае ошибки
+    expert.value.availability = expert.value.availability === 'Свободен' ? 'Занят' : 'Свободен';
+    alert('Не удалось изменить статус. Попробуйте снова.');
+  }
 };
 
+// Добавляем computed свойство для текста кнопки
+const statusButtonText = computed(() => {
+  return expert.value?.availability === 'Свободен' ? 'Занят' : 'Свободен';
+});
+
+const statusButtonClass = computed(() => {
+  return expert.value?.availability === 'Свободен'
+    ? 'status-free-btn'
+    : 'status-busy-btn';
+});
+// Изменение статуса эксперта Свободен/Занят. Конец
 const logout = () => {
   expertsStore.logoutExpert();
   router.push('/');
@@ -330,9 +371,17 @@ const formatDate = (dateString) => {
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.02);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .timer-content {
@@ -551,8 +600,8 @@ const formatDate = (dateString) => {
   border-radius: 5px;
   cursor: pointer;
 }
-.extend-publication-btn
-{
+
+.extend-publication-btn {
   padding: 10px 20px;
   background: #1e9970;
   color: white;
@@ -560,8 +609,8 @@ const formatDate = (dateString) => {
   border-radius: 5px;
   cursor: pointer;
 }
-.to-my-profile-btn
-{
+
+.to-my-profile-btn {
   padding: 10px 20px;
   background: #007bff;
   color: white;
@@ -569,14 +618,39 @@ const formatDate = (dateString) => {
   border-radius: 5px;
   cursor: pointer;
 }
-.profileStausSwitcher-btn
-{
+
+/* Стили для кнопки статуса */
+.status-switcher-btn {
   padding: 10px 20px;
-  background: #ffc107;
-  color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.status-switcher-btn:disabled {
+  background: #ccc !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.status-free-btn {
+  background: #dc3545;
+  color: white;
+}
+
+.status-free-btn:hover:not(:disabled) {
+  background: #c82333;
+}
+
+.status-busy-btn {
+  background: #28a745;
+  color: white;
+}
+
+.status-busy-btn:hover:not(:disabled) {
+  background: #218838;
 }
 
 .delete-btn {
@@ -682,20 +756,20 @@ const formatDate = (dateString) => {
     flex-direction: column;
     gap: 15px;
   }
-  
+
   .header-actions {
     align-items: flex-start;
     width: 100%;
   }
-  
+
   .profile-info {
     grid-template-columns: 1fr;
   }
-  
+
   .action-buttons {
     flex-direction: column;
   }
-  
+
   .timer-content {
     flex-direction: column;
     gap: 10px;

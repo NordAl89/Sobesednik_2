@@ -4,10 +4,9 @@
   </div>
 
   <div v-else-if="expert" class="expert-detail">
-    <button class="back-btn" @click="goBack">← Вернуться к списку</button>
-
+    <button class="back-btn" @click="goBack">← Вернуться к списку</button>    
     <div class="notice">
-      💬 Вы можете договориться с Собеседником об удобной форме общения. Ваш приватный разговор может состояться в любом из доступных мессенджеров.
+      💬 Вы можете договориться с cобеседником об удобной форме общения. Ваш приватный разговор может состояться в любом из мессенджеров.
     </div>
 
     <!-- Главное фото и информация -->
@@ -19,6 +18,7 @@
       />
       <div class="details">
         <h1>{{ expert.name }}</h1>
+        <span v-if="expert.expertIsVerified" class="tag tag-is-verified">Данные подтверждены администарацией</span>
         <p><strong>Возраст:</strong> {{ expert.age }}</p>
         <!-- <p><strong>Пол:</strong> {{ expert.gender === 'male' ? 'Мужской' : 'Женский' }}</p> -->
         <p><strong>Статус:</strong> {{ expert.availability }}</p>
@@ -424,7 +424,20 @@ onMounted(fetchExpert)
   margin-bottom: 2rem;
   align-items: flex-start;
 }
+/* verified */
+.tag {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
 
+.tag-is-verified {
+  background-color: #ca9c02;
+  color: white;
+}
 .main-photo {
   width: 300px;
   height: 300px;
@@ -978,7 +991,7 @@ onMounted(fetchExpert)
 /* Стили для отзывов */
 .reviews {
   margin-top: 2rem;
-  padding: 1.5rem;
+  padding: 1rem;
   background: #f9f9f9;
   border-radius: 12px;
 }
