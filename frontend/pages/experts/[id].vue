@@ -5,17 +5,15 @@
 
   <div v-else-if="expert" class="expert-detail">
     <button class="back-btn" @click="goBack">← Вернуться к списку</button>    
+
     <div class="notice">
-      💬 Вы можете договориться с cобеседником об удобной форме общения. Ваш приватный разговор может состояться в любом из мессенджеров.
+      💬 Вы можете договориться с cобеседником об удобной форме общения. Ваш приватный разговор может состояться в любом
+      из мессенджеров.
     </div>
 
     <!-- Главное фото и информация -->
     <div class="main-info">
-      <img
-        :src="getImageUrl(expert.mainPhotoUrl) || getDefaultAvatar()"
-        alt="Фото собеседника"
-        class="main-photo"
-      />
+      <img :src="getImageUrl(expert.mainPhotoUrl) || getDefaultAvatar()" alt="Фото собеседника" class="main-photo" />
       <div class="details">
         <h1>{{ expert.name }}</h1>
         <span v-if="expert.expertIsVerified" class="tag tag-is-verified">Данные подтверждены администарацией</span>
@@ -23,7 +21,7 @@
         <!-- <p><strong>Пол:</strong> {{ expert.gender === 'male' ? 'Мужской' : 'Женский' }}</p> -->
         <p><strong>Статус:</strong> {{ expert.availability }}</p>
         <p><strong>Стоимость часа от:</strong> {{ expert.price }} ₽</p>
-        
+
         <!-- Дополнительные характеристики -->
         <div class="expert-characteristics">
           <span v-if="expert.alwaysAvailable" class="char-badge char-available">
@@ -36,66 +34,55 @@
             ✅ Без запретов
           </span>
         </div>
-        
+
         <p>
           <strong>Telegram:</strong>
-          <a 
-            v-if="expert.telegram"
-            href="#"
-            @click.prevent="handleTelegramClick"
-            class="telegram-link"
-          >
+          <a v-if="expert.telegram" href="#" @click.prevent="handleTelegramClick" class="telegram-link">
             {{ expert.telegram }}
           </a>
           <span v-else>—</span>
         </p>
         <div v-if="otherMessengersList.length">
-  <p><strong>Другие мессенджеры:</strong></p>
-  <div class="other-messengers">
-    <a 
-      v-for="(link, index) in otherMessengersList"
-      :key="index"
-      :href="getMessengerInfo(link).href"
-      target="_blank"
-      rel="noopener"
-      class="other-messenger-link"
-    >
-     <strong>{{ getMessengerInfo(link).icon }} {{ getMessengerInfo(link).name }} </strong> 
-    </a>
-  </div>
-</div>
+          <p><strong>Другие мессенджеры:</strong></p>
+          <div class="other-messengers">
+            <a v-for="(link, index) in otherMessengersList" :key="index" :href="getMessengerInfo(link).href"
+              target="_blank" rel="noopener" class="other-messenger-link">
+              <strong>{{ getMessengerInfo(link).icon }} {{ getMessengerInfo(link).name }} </strong>
+            </a>
+          </div>
+        </div>
 
         <p><strong>Разрешённые темы:</strong> {{ expert.allowedTopics }}</p>
         <p v-if="expert.forbiddenTopics"><strong>Запрещённые темы:</strong> {{ expert.forbiddenTopics }}</p>
+        
       </div>
     </div>
+    <!-- Модальное окно жалобы -->
+        <div v-if="complaintModalVisible" class="complaint-modal" @click="hideComplaintModal">
+          <div class="complaint-modal-content" @click.stop>
+            <button class="complaint-close" @click="hideComplaintModal">×</button>
+            <h3>Пожаловаться на собеседника</h3>
+            <p>При возникновении спорной ситуации, напиши нам на почту:</p>
+            <div class="complaint-email">
+              <a href="mailto:podderzhkasobesednik@gmail.com">podderzhkasobesednik@gmail.com</a>
+            </div>
+            <p class="complaint-note">Мы рассмотрим вашу жалобу в кратчайшие сроки.</p>
+            <button @click="hideComplaintModal" class="complaint-confirm-btn">Понятно</button>
+          </div>
+        </div>
     <div class="about-section" v-if="expert.about">
       <h3>О себе</h3>
       <p>{{ expert.about }}</p>
-      
+
     </div>
 
     <!-- Галерея -->
     <div v-if="galleryUrls && galleryUrls.length" class="gallery">
       <h3>Галерея</h3>
       <div class="gallery-grid">
-        <div 
-          v-for="(url, idx) in galleryUrls" 
-          :key="idx" 
-          class="gallery-item"
-        >
-          <img 
-            v-if="isImage(url)" 
-            :src="getImageUrl(url)" 
-            :alt="`Фото ${idx + 1}`"
-            @click="openLightbox(idx)"
-          />
-          <video 
-            v-else 
-            controls
-            :src="getImageUrl(url)"
-            @click="openLightbox(idx)"
-          >
+        <div v-for="(url, idx) in galleryUrls" :key="idx" class="gallery-item">
+          <img v-if="isImage(url)" :src="getImageUrl(url)" :alt="`Фото ${idx + 1}`" @click="openLightbox(idx)" />
+          <video v-else controls :src="getImageUrl(url)" @click="openLightbox(idx)">
             Ваш браузер не поддерживает видео.
           </video>
         </div>
@@ -107,23 +94,14 @@
       <div class="lightbox-content" @click.stop>
         <button class="lightbox-close" @click="closeLightbox">×</button>
         <button class="lightbox-nav lightbox-prev" @click="prevImage">‹</button>
-        
+
         <div class="lightbox-media">
-          <img 
-            v-if="isImage(currentLightboxUrl)" 
-            :src="getImageUrl(currentLightboxUrl)" 
-            alt="Просмотр галереи"
-          />
-          <video 
-            v-else 
-            controls
-            autoplay
-            :src="getImageUrl(currentLightboxUrl)"
-          >
+          <img v-if="isImage(currentLightboxUrl)" :src="getImageUrl(currentLightboxUrl)" alt="Просмотр галереи" />
+          <video v-else controls autoplay :src="getImageUrl(currentLightboxUrl)">
             Ваш браузер не поддерживает видео.
           </video>
         </div>
-        
+
         <button class="lightbox-nav lightbox-next" @click="nextImage">›</button>
       </div>
     </div>
@@ -132,13 +110,8 @@
     <div class="rating-section">
       <h3>Поставить оценку</h3>
       <div class="stars">
-        <span
-          v-for="star in 5"
-          :key="star"
-          class="star"
-          :class="{ active: star <= newRating }"
-          @click="setRating(star)"
-        >
+        <span v-for="star in 5" :key="star" class="star" :class="{ active: star <= newRating }"
+          @click="setRating(star)">
           ★
         </span>
       </div>
@@ -148,31 +121,23 @@
     <!-- Отзывы -->
     <div class="reviews">
       <h3>Отзывы</h3>
-      
+
       <!-- Форма добавления отзыва -->
       <div class="review-input-container">
-        <textarea 
-          v-model="newReview" 
-          @input="handleReviewInput"
-          placeholder="Напишите отзыв (минимум 6 символов)..." 
-          rows="3"
-          :class="{ error: reviewError }"
-        ></textarea>
-        
+        <textarea v-model="newReview" @input="handleReviewInput" placeholder="Напишите отзыв (минимум 6 символов)..."
+          rows="3" :class="{ error: reviewError }"></textarea>
+
         <div class="character-counter" :class="{ 'limit-reached': newReview.length >= 500 }">
           {{ newReview.length }}/500
         </div>
-        
+
         <div v-if="reviewError" class="error-message">
           {{ reviewError }}
         </div>
       </div>
-      
-      <button 
-        @click="addReview" 
-        :disabled="!newReview.trim() || newReview.trim().length < 6 || newReview.length > 500"
-        class="review-submit-btn"
-      >
+
+      <button @click="addReview" :disabled="!newReview.trim() || newReview.trim().length < 6 || newReview.length > 500"
+        class="review-submit-btn">
         Добавить отзыв
       </button>
 
@@ -185,6 +150,10 @@
       </div>
       <p v-else class="no-reviews">Пока нет отзывов. Будьте первым!</p>
     </div>
+    <!-- Кнопка жалобы -->
+        <button @click="showComplaintModal" class="complaint-btn">
+          ⚠️ Пожаловаться на собеседника
+        </button>
   </div>
 </template>
 
@@ -203,6 +172,17 @@ const reviewError = ref('')
 // Лайтбокс состояния
 const lightboxVisible = ref(false)
 const currentLightboxIndex = ref(0)
+const complaintModalVisible = ref(false) // Состояние модального окна жалобы
+
+// Показать модальное окно жалобы
+const showComplaintModal = () => {
+  complaintModalVisible.value = true
+}
+
+const hideComplaintModal = () => {
+  complaintModalVisible.value = false
+}
+// Жалобы конец
 
 //Раздел Другие мессенджеры
 const getMessengerInfo = (url) => {
@@ -213,7 +193,7 @@ const getMessengerInfo = (url) => {
   if (lower.includes('t.me')) return { name: 'Telegram', icon: '📲', href: url }
   if (lower.includes('wa.me') || lower.includes('whatsapp.com')) return { name: 'WhatsApp', icon: '💚', href: url }
   if (lower.includes('instagram.com')) return { name: 'Instagram', icon: '📸', href: url }
-   if (urlOrTag.includes('#')) return { name: 'Discord', icon: '💜', href: '#' }
+  if (urlOrTag.includes('#')) return { name: 'Discord', icon: '💜', href: '#' }
 
   return { name: 'Ссылка', icon: '🔗', href: url }
 }
@@ -234,7 +214,7 @@ const otherMessengersList = computed(() => {
 // Обрабатываем galleryUrls - может быть строкой или массивом
 const galleryUrls = computed(() => {
   if (!expert.value?.galleryUrls) return []
-  
+
   // Если galleryUrls это строка (JSON), парсим её
   if (typeof expert.value.galleryUrls === 'string') {
     try {
@@ -244,7 +224,7 @@ const galleryUrls = computed(() => {
       return []
     }
   }
-  
+
   // Если это уже массив, возвращаем как есть
   return expert.value.galleryUrls
 })
@@ -270,8 +250,8 @@ const nextImage = () => {
 
 const prevImage = () => {
   if (!galleryUrls.value.length) return
-  currentLightboxIndex.value = currentLightboxIndex.value === 0 
-    ? galleryUrls.value.length - 1 
+  currentLightboxIndex.value = currentLightboxIndex.value === 0
+    ? galleryUrls.value.length - 1
     : currentLightboxIndex.value - 1
 }
 
@@ -305,14 +285,14 @@ const fetchExpert = async () => {
     const id = route.params.id
     const response = await $fetch(`http://localhost:4000/experts/${id}`)
     expert.value = response
-    
+
     // Инициализируем reviews если их нет
     if (!expert.value.reviews) {
       expert.value.reviews = []
     }
-    
+
     newRating.value = expert.value.rating || 0
-    
+
     console.log('✅ Данные эксперта загружены:', expert.value)
     console.log('📸 Главное фото URL:', expert.value.mainPhotoUrl)
     console.log('💬 Отзывы:', expert.value.reviews)
@@ -375,28 +355,28 @@ const validateReview = (text) => {
 
 const addReview = async () => {
   if (!expert.value) return
-  
+
   // Валидируем отзыв
   const error = validateReview(newReview.value)
   if (error) {
     reviewError.value = error
     return
   }
-  
+
   // Сбрасываем ошибку
   reviewError.value = ''
-  
+
   const review = {
     text: newReview.value.trim(),
     date: new Date().toLocaleString()
   }
-  
+
   try {
     await $fetch(`http://localhost:4000/experts/${expert.value.id}/reviews`, {
       method: 'POST',
       body: review
     })
-    
+
     expert.value.reviews = expert.value.reviews || []
     expert.value.reviews.push(review)
     newReview.value = ''
@@ -481,6 +461,7 @@ onMounted(fetchExpert)
   margin-bottom: 2rem;
   align-items: flex-start;
 }
+
 /* verified */
 .tag {
   display: inline-block;
@@ -495,12 +476,13 @@ onMounted(fetchExpert)
   background-color: #ca9c02;
   color: white;
 }
+
 .main-photo {
   width: 300px;
   height: 300px;
   object-fit: cover;
   border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .details {
@@ -592,7 +574,7 @@ onMounted(fetchExpert)
   border: 1px solid #e0e0e0;
   border-radius: 10px;
   padding: 1.5rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 .about-section h3 {
@@ -633,12 +615,12 @@ onMounted(fetchExpert)
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .gallery-item:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .gallery-item img,
@@ -737,7 +719,7 @@ onMounted(fetchExpert)
   max-width: 100%;
   max-height: 80vh;
   border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .rating-section {
@@ -1003,6 +985,140 @@ onMounted(fetchExpert)
   }
 }
 
+/* Стили для кнопки жалобы */
+.complaint-btn {
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.complaint-btn:hover {
+  background: #ff5252;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+/* Модальное окно жалобы */
+.complaint-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(4px);
+}
+
+.complaint-modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  animation: modalAppear 0.3s ease;
+}
+
+@keyframes modalAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.complaint-close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 5px;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.complaint-close:hover {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.complaint-modal-content h3 {
+  margin: 0 0 1rem 0;
+  color: #2c3e50;
+  font-size: 1.3rem;
+}
+
+.complaint-modal-content p {
+  margin: 0.5rem 0;
+  line-height: 1.5;
+  color: #555;
+}
+
+.complaint-email {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 8px;
+  margin: 1rem 0;
+  border: 2px solid #e9ecef;
+}
+
+.complaint-email strong {
+  color: #e74c3c;
+  font-size: 1.1rem;
+  word-break: break-all;
+}
+
+.complaint-note {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  font-style: italic;
+}
+
+.complaint-confirm-btn {
+  background: #3498db;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}
+
+.complaint-confirm-btn:hover {
+  background: #2980b9;
+  transform: translateY(-1px);
+}
+
+
 /* === Десктоп (1025px+) === */
 @media (min-width: 1025px) {
   .expert-detail {
@@ -1167,5 +1283,19 @@ onMounted(fetchExpert)
 .rating-section p {
   color: #666;
   font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .complaint-modal-content {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+  
+  .complaint-btn {
+    width: 100%;
+    justify-content: center;
+    font-size: 13px;
+    padding: 12px;
+  }
 }
 </style>
