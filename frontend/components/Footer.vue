@@ -28,9 +28,9 @@
       <div class="footer-section">
         <h3>Контакты</h3>
         <ul>
-          <!-- <li>
-            <a href="mailto:support@sobesednik.com">support@sobesednik.com</a>
-          </li> -->
+          <li>
+            <a href="mailto:podderzhkasobesednik@gmail.com">podderzhkasobesednik@gmail.com</a>
+          </li>
           <li>
             <a href="https://t.me/Konstantin_Nor" target="_blank" rel="noopener">
               Telegram чат

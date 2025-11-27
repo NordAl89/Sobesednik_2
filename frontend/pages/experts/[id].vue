@@ -146,19 +146,46 @@
     </div>
 
     <!-- Отзывы -->
-    <div class="reviews">
-      <h3>Отзывы</h3>
-      <textarea v-model="newReview" placeholder="Напишите отзыв..." rows="3"></textarea>
-      <button @click="addReview" :disabled="!newReview.trim()">Добавить отзыв</button>
-
-      <div v-if="expert.reviews && expert.reviews.length > 0" class="review-list">
-        <div v-for="(review, index) in expert.reviews" :key="index" class="review-item">
-          <p class="review-text">{{ review.text }}</p>
-          <small class="review-date">{{ review.date }}</small>
-        </div>
+  <div class="reviews">
+    <h3>Отзывы</h3>
+    
+    <!-- Поле для отзыва с валидацией -->
+    <div class="review-input-container">
+      <textarea 
+        v-model="newReview" 
+        @input="handleReviewInput"
+        placeholder="Напишите отзыв (минимум 6 символов)..." 
+        rows="3"
+        :class="{ error: reviewError }"
+      ></textarea>
+      
+      <!-- Счетчик символов -->
+      <div class="character-counter" :class="{ 'limit-reached': newReview.length >= 500 }">
+        {{ newReview.length }}/500
       </div>
-      <p v-else class="no-reviews">Пока нет отзывов. Будьте первым!</p>
+      
+      <!-- Сообщение об ошибке -->
+      <div v-if="reviewError" class="error-message">
+        {{ reviewError }}
+      </div>
     </div>
+    
+    <button 
+      @click="addReview" 
+      :disabled="!newReview.trim() || newReview.trim().length < 6 || newReview.length > 500"
+      class="review-submit-btn"
+    >
+      Добавить отзыв
+    </button>
+
+    <div v-if="expert.reviews && expert.reviews.length > 0" class="review-list">
+      <div v-for="(review, index) in expert.reviews" :key="index" class="review-item">
+        <p class="review-text">{{ review.text }}</p>
+        <small class="review-date">{{ review.date }}</small>
+      </div>
+    </div>
+    <p v-else class="no-reviews">Пока нет отзывов. Будьте первым!</p>
+  </div>
   </div>
 
   <div v-else>
@@ -177,7 +204,7 @@ const expert = ref(null)
 const loading = ref(true)
 const newRating = ref(0)
 const newReview = ref('')
-
+const reviewError = ref('')
 // Лайтбокс состояния
 const lightboxVisible = ref(false)
 const currentLightboxIndex = ref(0)
@@ -336,11 +363,36 @@ const setRating = async (star) => {
 
 
 // Добавление отзыва
+// Валидация отзыва
+const validateReview = (text) => {
+  if (!text.trim()) {
+    return 'Отзыв не может быть пустым'
+  }
+  if (text.trim().length < 6) {
+    return 'Отзыв должен содержать не менее 6 символов'
+  }
+  if (text.trim().length > 500) {
+    return 'Отзыв не должен превышать 500 символов'
+  }
+  return ''
+}
+
+
 const addReview = async () => {
-  if (!expert.value || !newReview.value.trim()) return
+  if (!expert.value) return
+  
+  // Валидируем отзыв
+  const error = validateReview(newReview.value)
+  if (error) {
+    reviewError.value = error
+    return
+  }
+  
+  // Сбрасываем ошибку
+  reviewError.value = ''
   
   const review = {
-    text: newReview.value,
+    text: newReview.value.trim(),
     date: new Date().toLocaleString()
   }
   
@@ -355,8 +407,18 @@ const addReview = async () => {
     newReview.value = ''
   } catch (error) {
     console.error('❌ Ошибка добавления отзыва:', error)
+    reviewError.value = 'Не удалось добавить отзыв. Попробуйте снова.'
   }
 }
+
+// Сброс ошибки при изменении текста
+const handleReviewInput = () => {
+  if (reviewError.value) {
+    reviewError.value = ''
+  }
+}
+// Добавление отзыва. Конец
+
 // Логика для перехода в Telegram и отправки уведомления эксперту
 const getTelegramLink = (username) => {
   const clean = username.replace('@', '').trim()
