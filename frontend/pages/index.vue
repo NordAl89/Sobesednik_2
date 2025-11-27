@@ -164,9 +164,10 @@ const sortedExperts = computed(() => {
       return experts.sort((a, b) => (b.rating || 0) - (a.rating || 0))
     case 'reviews':
       return experts.sort((a, b) => {
-        const reviewsA = Array.isArray(a.reviews) ? a.reviews.length : 0
-        const reviewsB = Array.isArray(b.reviews) ? b.reviews.length : 0
-        return reviewsB - reviewsA // от большего к меньшему
+        // Используем reviewsCount если он есть, иначе считаем длину массива reviews
+        const reviewsCountA = a.reviewsCount || (Array.isArray(a.reviews) ? a.reviews.length : 0)
+        const reviewsCountB = b.reviewsCount || (Array.isArray(b.reviews) ? b.reviews.length : 0)
+        return reviewsCountB - reviewsCountA // от большего к меньшему
       })
     case 'new':
       return experts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
@@ -176,7 +177,6 @@ const sortedExperts = computed(() => {
       return experts
   }
 })
-
 
 // страничная логика
 const totalPages = computed(() => Math.ceil(sortedExperts.value.length / expertsPerPage))

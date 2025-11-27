@@ -348,13 +348,22 @@ export class ExpertsController {
   }
 
   // Endpoint для админа - возвращает всех экспертов (включая на модерации)
-  // ВАЖНО: должен быть ПЕРЕД @Get() для правильной маршрутизации
   @Get('admin/all')
-  async findAllForAdmin() {
-    console.log('🔍 Запрос к /experts/admin/all');
-    const experts = await this.expertsService.findAll();
-    console.log(`📊 Найдено экспертов для админа: ${experts.length}`);
-    return experts.map(expert => ({
+async findAllForAdmin() {
+  console.log('🔍 Запрос к /experts/admin/all');
+  const experts = await this.expertsService.findAll();
+  console.log(`📊 Найдено экспертов для админа: ${experts.length}`);
+  return experts.map(expert => {
+    let reviews = [];
+    if (expert.reviews) {
+      try {
+        reviews = JSON.parse(expert.reviews);
+      } catch (e) {
+        reviews = [];
+      }
+    }
+    
+    return {
       id: expert.id,
       login: expert.login,
       name: expert.name,
@@ -366,32 +375,44 @@ export class ExpertsController {
       mainPhotoUrl: expert.mainPhotoUrl,
       rating: expert.rating,
       totalSessions: expert.totalSessions,
-      expertIsVerified: expert.expertIsVerified,
       status: expert.status,
       adminVerified: expert.adminVerified,
+      expertIsVerified: expert.expertIsVerified,
       telegram: expert.telegram,
       otherMessengers: expert.otherMessengers,
       allowedTopics: expert.allowedTopics,
       forbiddenTopics: expert.forbiddenTopics,
       adultTopics: expert.adultTopics,
       noForbiddenTopics: expert.noForbiddenTopics,
-      paymentCode: expert.paymentCode,
-      publicationDays: expert.publicationDays,
-      paymentAmount: expert.paymentAmount,
       createdAt: expert.createdAt,
       updatedAt: expert.updatedAt,
-      alwaysAvailable: expert.alwaysAvailable
-    }));
-  }
-
+      alwaysAvailable: expert.alwaysAvailable,
+      reviews: reviews, // ← ДОБАВЛЯЕМ ОТЗЫВЫ
+      reviewsCount: reviews.length // ← И количество отзывов для удобства
+    };
+  });
+}
+  
   @Get()
-  async findAll() {
-    console.log('🔍 Запрос к /experts (публичный endpoint)');
-    // Возвращаем только активных и проверенных экспертов для публичного списка
-    const experts = await this.expertsService.findAllActive();
-    console.log(`📊 Найдено активных экспертов: ${experts.length}`);
-    return experts.map(expert => ({
-      id: expert.id,
+async findAll() {
+  console.log('🔍 Запрос к /experts (публичный endpoint)');
+  // Возвращаем только активных и проверенных экспертов для публичного списка
+  const experts = await this.expertsService.findAllActive();
+  console.log(`📊 Найдено активных экспертов: ${experts.length}`);
+  return experts.map(expert => {
+    // Парсим отзывы для подсчета количества
+    let reviews = [];
+    if (expert.reviews) {
+      try {
+        reviews = JSON.parse(expert.reviews);
+      } catch (e) {
+        console.warn('Ошибка парсинга отзывов');
+        reviews = [];
+      }
+    }
+    
+    return {
+     id: expert.id,
       login: expert.login,
       name: expert.name,
       age: expert.age,
@@ -413,9 +434,12 @@ export class ExpertsController {
       noForbiddenTopics: expert.noForbiddenTopics,
       createdAt: expert.createdAt,
       updatedAt: expert.updatedAt,
-      alwaysAvailable: expert.alwaysAvailable
-    }));
-  }
+      alwaysAvailable: expert.alwaysAvailable,
+      reviews: reviews, // ← ДОБАВЛЯЕМ ОТЗЫВЫ
+      reviewsCount: reviews.length // ← И количество отзывов для удобства
+    };
+  });
+}
 
   @Get('debug/:id')
   async debugExpert(@Param('id') id: string) {
