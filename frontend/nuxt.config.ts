@@ -56,5 +56,42 @@ export default defineNuxtConfig({
     define: {
       'process.env.DEBUG': false
     }
+  },
+
+  // ✅ ДОБАВЛЯЕМ SEO КОНФИГУРАЦИЮ
+  app: {
+    head: {
+      title: 'Собеседник на час - Доверительное общение с понимающим собеседником',
+      meta: [
+        // Базовые meta-теги
+        { name: 'description', content: 'Онлайн-платформа для доверительного общения. Найдите собеседника-эксперта для приватного разговора, душевной беседы или дружеского совета. Общайтесь в чате, по голосовой или видеосвязи.' },
+        { name: 'keywords', content: 'собеседник, доверительное общение, душевная беседа, приватный разговор, дружеский совет, понимающий слушатель, эмоциональная поддержка, выговориться, излить душу, личные темы, откровенный разговор, конфиденциальное общение, приватные темы, сокровенные беседы, доверительный диалог, открытое общение, личный опыт, деликатные вопросы ' },
+        { name: 'robots', content: 'index, follow' },
+        { name: 'author', content: 'Собеседник на час' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1.0' },
+        
+        // Open Graph
+        { property: 'og:title', content: 'Собеседник на час - Пространство для доверительного общения' },
+        { property: 'og:description', content: 'Найдите понимающего собеседника для душевной беседы. Приватные разговоры с эмпатичными людьми, готовыми выслушать и поддержать.' },
+        { property: 'og:image', content: '/images/og-image.jpg' }, // Создайте этот файл в public/images/
+        { property: 'og:url', content: 'https://sobesednik-na-chas.ru' }, // Замените на ваш домен
+        { property: 'og:type', content: 'website' },
+        { property: 'og:site_name', content: 'Собеседник на час' },
+        { property: 'og:locale', content: 'ru_RU' },
+        
+        // Twitter Card
+        { name: 'twitter:card', content: 'summary_large_image' },
+        { name: 'twitter:title', content: 'Собеседник на час - Доверительное общение' },
+        { name: 'twitter:description', content: 'Найдите понимающего собеседника для душевной беседы' },
+        { name: 'twitter:image', content: '/images/twitter-image.jpg' }
+      ],
+      link: [
+        { rel: 'canonical', href: 'https://sobesednik-na-chas.ru' }, // Замените на ваш домен
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+      ],
+      htmlAttrs: {
+        lang: 'ru'
+      }
+    }
   }
 })
