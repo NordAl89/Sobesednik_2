@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsOptional, Min, IsNotEmpty, IsBoolean, IsIn } from 'class-validator';
+import { IsString, IsNumber, IsOptional, Min, Max, IsNotEmpty, IsBoolean, IsIn } from 'class-validator';
 
 export class CreateExpertDto {
   @IsString()
@@ -80,4 +80,20 @@ export class CreateExpertDto {
   @IsBoolean()
   @IsOptional()
   expertIsVerified?: boolean; // Верификация эксперта
+  
+   @IsNumber()
+  @Min(0)
+  @Max(5)
+  @IsOptional()
+  rating?: number;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  ratingCount?: number;
+
+  @IsString()
+  @IsOptional()
+  ratings?: string;
+
 }

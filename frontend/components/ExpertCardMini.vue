@@ -19,10 +19,11 @@
 <!-- <pre>{{ expert }}</pre>  -->
       <div class="name-rating">
          <h3>{{ expert.name }}</h3>
-         <span v-if="expert.alwaysAvailable" class="always-available">24/7</span>
-        ⭐ {{ expert.rating }}/5
+         
+         <span v-if="expert.alwaysAvailable" class="always-available">24/7</span>       
+         
       </div> 
-     
+      <p> <b>Рейтинг:</b> ⭐ {{ formatRating(expert.rating) }}</p>
       <p> <b>Возраст:</b> {{ expert.age }} {{ getAgeWord(expert.age) }}</p>
       <!-- <p>Пол: {{ expert.gender === 'male' ? 'Мужской' : 'Женский' }}</p> -->
 
@@ -99,6 +100,19 @@ function getImageUrl(url) {
 }
 
 const getDefaultAvatar = () => '/images/expert-default.svg'
+
+// Функция для форматирования рейтинга
+const formatRating = (rating) => {
+  if (!rating && rating !== 0) return '0';
+  
+  // Проверяем, является ли число целым
+  if (Number.isInteger(rating)) {
+    return rating.toString(); // Целое число - без запятой
+  } else {
+    return parseFloat(rating).toFixed(1); // Дробное - одна цифра после запятой
+  }
+}
+// Функция для форматирования рейтинга. Конец
 </script>
 
 <style scoped>
@@ -255,6 +269,10 @@ p {
 .tag-is-verified {
   background-color: #ca9c02;
   color: white;
+}
+
+.rating-value{  
+  font-size: 16px;
 }
 /* ---------- 📱 АДАПТИВНОСТЬ ---------- */
 

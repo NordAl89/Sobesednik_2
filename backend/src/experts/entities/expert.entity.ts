@@ -41,8 +41,8 @@ export class Expert {
   @Column('text', { default: '[]' })
   galleryUrls!: string;
 
-  @Column({ default: 0 })
-  rating!: number;
+  // @Column({ default: 0 })
+  // rating!: number;
 
   @Column({ default: 0 })
   totalSessions!: number;
@@ -84,7 +84,16 @@ export class Expert {
   alwaysAvailable!: boolean;
 
   @Column({ default: false })
-  expertIsVerified!: boolean; // Новое поле для верификации через встречу
+  expertIsVerified!: boolean; // Новое поле для верификации 
+
+  @Column({ type: 'decimal', precision: 3, scale: 2, default: 0 })
+  rating!: number;
+
+  @Column({ default: 0 })
+  ratingCount!: number; // Количество оценок
+
+  @Column('text', { default: '[]' })
+  ratings!: string; // Массив всех оценок в формате JSON
 
   @Column({ type: 'text', nullable: true })
   reviews?: string; // Храним отзывы как JSON строку

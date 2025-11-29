@@ -315,6 +315,16 @@ export class ExpertsController {
   @Get('profile/:id')
   async getProfile(@Param('id') id: string) {
     const expert = await this.expertsService.getProfile(id);
+
+    // Парсим ratings
+    let ratings: number[] = [];
+    if (expert.ratings) {
+      try {
+        ratings = JSON.parse(expert.ratings);
+      } catch (e) {
+        ratings = [];
+      }
+    }
     
     return {
       id: expert.id,
@@ -328,8 +338,7 @@ export class ExpertsController {
       forbiddenTopics: expert.forbiddenTopics,
       price: expert.price,
       mainPhotoUrl: expert.mainPhotoUrl,
-      galleryUrls: expert.galleryUrls,
-      rating: expert.rating,
+      galleryUrls: expert.galleryUrls,      
       totalSessions: expert.totalSessions,
       adminVerified: expert.adminVerified,
       expertIsVerified: expert.expertIsVerified,
@@ -344,7 +353,10 @@ export class ExpertsController {
       publicationDays: expert.publicationDays,
       paymentAmount: expert.paymentAmount,
       publishedAt: expert.publishedAt,
-      expiresAt: expert.expiresAt
+      expiresAt: expert.expiresAt,
+      rating: expert.rating,
+      ratingCount: expert.ratingCount,
+      ratings: ratings, // ← ДОБАВЛЯЕМ МАССИВ ОЦЕНОК
     };
   }
 
@@ -561,29 +573,65 @@ async findAll() {
     return { success: true };
   }
 
-  // Обновление рейтинга
-  @Patch(':id/rating')
-  async updateRating(
+  // Обновление рейтинга - теперь добавляем оценку в массив
+  @Post(':id/rating')
+  async addRating(
     @Param('id') id: string,
     @Body('rating') rating: number
   ) {
-    console.log('⭐ Обновление рейтинга эксперта:', id, 'Новый рейтинг:', rating);
-    
-    const expert = await this.expertsService.findOne(id);
-    if (!expert) {
-      throw new NotFoundException('Эксперт не найден');
+    console.log('⭐ Добавление оценки эксперту:', id, 'Оценка:', rating);
+
+    // Проверяем валидность оценки
+    if (rating < 1 || rating > 5) {
+      throw new BadRequestException('Оценка должна быть от 1 до 5');
     }
 
-    expert.rating = rating;
-    await this.expertsService.update(id, { rating });
+    const expert = await this.expertsService.addRating(id, rating);
 
-    console.log('✅ Рейтинг обновлен:', expert.rating);
+    // Получаем статистику рейтинга для ответа
+    let ratings: number[] = [];
+    if (expert.ratings) {
+      try {
+        ratings = JSON.parse(expert.ratings);
+      } catch (e) {
+        ratings = [];
+      }
+    }
+
+    const ratingStats = this.expertsService.getRatingStats(ratings);
+
+    console.log('✅ Оценка добавлена. Новый рейтинг:', expert.rating);
     
     return {
       id: expert.id,
-      rating: expert.rating
+      rating: expert.rating,
+      ratingCount: expert.ratingCount,
+      ratingStats
     };
   }
+
+  // Получение детальной статистики рейтинга
+  @Get(':id/rating/stats')
+  async getRatingStats(@Param('id') id: string) {
+    const expert = await this.expertsService.findOne(id);
+    
+    let ratings: number[] = [];
+    if (expert.ratings) {
+      try {
+        ratings = JSON.parse(expert.ratings);
+      } catch (e) {
+        ratings = [];
+      }
+    }
+
+    const stats = this.expertsService.getRatingStats(ratings);
+
+    return {
+      id: expert.id,
+      ...stats
+    };
+  }
+
 
   // Добавление отзыва
   @Post(':id/reviews')

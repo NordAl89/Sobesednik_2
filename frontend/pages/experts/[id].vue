@@ -4,7 +4,7 @@
   </div>
 
   <div v-else-if="expert" class="expert-detail">
-    <button class="back-btn" @click="goBack">← Вернуться к списку</button>    
+    <button class="back-btn" @click="goBack">← Вернуться к списку</button>
 
     <div class="notice">
       💬 Вы можете договориться с cобеседником об удобной форме общения. Ваш приватный разговор может состояться в любом
@@ -16,6 +16,18 @@
       <img :src="getImageUrl(expert.mainPhotoUrl) || getDefaultAvatar()" alt="Фото собеседника" class="main-photo" />
       <div class="details">
         <h1>{{ expert.name }}</h1>
+        <!-- Отображение рейтинга с частичными звездами -->
+        <div class="rating-header">
+          <div class="stars-display">
+            <span v-for="star in 5" :key="star" class="star-display" :class="getStarClass(star)">
+              ★
+            </span>
+          </div>
+          <p class="rating-text"> <strong> {{ expert.rating.toFixed(1) }}</strong>
+           
+          </p>
+        </div>
+        
         <span v-if="expert.expertIsVerified" class="tag tag-is-verified">Данные подтверждены администарацией</span>
         <p><strong>Возраст:</strong> {{ expert.age }}</p>
         <!-- <p><strong>Пол:</strong> {{ expert.gender === 'male' ? 'Мужской' : 'Женский' }}</p> -->
@@ -54,22 +66,22 @@
 
         <p><strong>Разрешённые темы:</strong> {{ expert.allowedTopics }}</p>
         <p v-if="expert.forbiddenTopics"><strong>Запрещённые темы:</strong> {{ expert.forbiddenTopics }}</p>
-        
+
       </div>
     </div>
     <!-- Модальное окно жалобы -->
-        <div v-if="complaintModalVisible" class="complaint-modal" @click="hideComplaintModal">
-          <div class="complaint-modal-content" @click.stop>
-            <button class="complaint-close" @click="hideComplaintModal">×</button>
-            <h3>Пожаловаться на собеседника</h3>
-            <p>При возникновении спорной ситуации, напиши нам на почту:</p>
-            <div class="complaint-email">
-              <a href="mailto:podderzhkasobesednik@gmail.com">podderzhkasobesednik@gmail.com</a>
-            </div>
-            <p class="complaint-note">Мы рассмотрим вашу жалобу в кратчайшие сроки.</p>
-            <button @click="hideComplaintModal" class="complaint-confirm-btn">Понятно</button>
-          </div>
+    <div v-if="complaintModalVisible" class="complaint-modal" @click="hideComplaintModal">
+      <div class="complaint-modal-content" @click.stop>
+        <button class="complaint-close" @click="hideComplaintModal">×</button>
+        <h3>Пожаловаться на собеседника</h3>
+        <p>При возникновении спорной ситуации, напиши нам на почту:</p>
+        <div class="complaint-email">
+          <a href="mailto:podderzhkasobesednik@gmail.com">podderzhkasobesednik@gmail.com</a>
         </div>
+        <p class="complaint-note">Мы рассмотрим вашу жалобу в кратчайшие сроки.</p>
+        <button @click="hideComplaintModal" class="complaint-confirm-btn">Понятно</button>
+      </div>
+    </div>
     <div class="about-section" v-if="expert.about">
       <h3>О себе</h3>
       <p>{{ expert.about }}</p>
@@ -108,14 +120,45 @@
 
     <!-- Рейтинг -->
     <div class="rating-section">
-      <h3>Поставить оценку</h3>
-      <div class="stars">
-        <span v-for="star in 5" :key="star" class="star" :class="{ active: star <= newRating }"
-          @click="setRating(star)">
-          ★
-        </span>
+
+      <!-- Форма для добавления оценки, рейтинга -->
+      <div class="rating-input">
+        <h4>Поставить оценку</h4>
+        <div class="stars-input">
+          <span v-for="star in 5" :key="star" class="star-input" :class="{
+            active: star <= hoverRating || star <= currentRating,
+            hover: star <= hoverRating
+          }" @click="setRating(star)" @mouseenter="hoverRating = star" @mouseleave="hoverRating = 0">
+            ★
+          </span>
+        </div>
+        <p v-if="currentRating > 0" class="selected-rating">
+          Вы поставили: {{ currentRating }} ★
+        </p>
       </div>
-      <p>Текущий рейтинг: {{ expert.rating.toFixed(1) || 0 }}</p>
+
+      <!-- Детальная статистика рейтинга -->
+      <!-- <div v-if="ratingStats" class="rating-stats">
+        <h4>Детальная статистика</h4>
+        <div class="stats-bars">
+          <div 
+            v-for="n in 5" 
+            :key="n" 
+            class="stat-row"
+          >
+            <span class="stat-star">{{ 6 - n }} ★</span>
+            <div class="stat-bar">
+              <div 
+                class="stat-fill" 
+                :style="{ width: getPercentage(6 - n) + '%' }"
+              ></div>
+            </div>
+            <span class="stat-count">
+              {{ ratingStats.distribution[6 - n] || 0 }}
+            </span>
+          </div>
+        </div>
+      </div> -->
     </div>
 
     <!-- Отзывы -->
@@ -151,9 +194,9 @@
       <p v-else class="no-reviews">Пока нет отзывов. Будьте первым!</p>
     </div>
     <!-- Кнопка жалобы -->
-        <button @click="showComplaintModal" class="complaint-btn">
-          ⚠️ Пожаловаться на собеседника
-        </button>
+    <button @click="showComplaintModal" class="complaint-btn">
+      ⚠️ Пожаловаться на собеседника
+    </button>
   </div>
 </template>
 
@@ -169,6 +212,9 @@ const loading = ref(true)
 const newRating = ref(0)
 const newReview = ref('')
 const reviewError = ref('')
+const currentRating = ref(0)
+const hoverRating = ref(0)
+const ratingStats = ref(null)
 // Лайтбокс состояния
 const lightboxVisible = ref(false)
 const currentLightboxIndex = ref(0)
@@ -305,34 +351,69 @@ const fetchExpert = async () => {
   }
 }
 
-// Обновление рейтинга с пересчётом среднего арифметического
+// Получаем класс для отображения частично заполненных звезд
+const getStarClass = (star) => {
+  if (!expert.value) return ''
+
+  const rating = expert.value.rating
+  const fullStars = Math.floor(rating)
+  const partialStar = rating - fullStars
+
+  if (star <= fullStars) {
+    return 'full'
+  } else if (star === fullStars + 1 && partialStar > 0) {
+    return 'partial'
+  } else {
+    return 'empty'
+  }
+}
+
+// Получаем процент для статистики
+const getPercentage = (star) => {
+  if (!ratingStats.value || ratingStats.value.count === 0) return 0
+  const count = ratingStats.value.distribution[star] || 0
+  return (count / ratingStats.value.count) * 100
+}
+
+// Установка рейтинга
 const setRating = async (star) => {
   if (!expert.value) return
 
-  // Инициализируем массив, если его нет
-  if (!Array.isArray(expert.value.rating)) {
-    expert.value.rating = []
-  }
-
-  // Добавляем новую оценку
-  expert.value.rating.push(star)
-
-  // Пересчитываем рейтинг
-  const newAverageRating = expert.value.rating.reduce((a, b) => a + b, 0) / expert.value.rating.length
-
-  // Обновляем локально
-  expert.value.rating = newAverageRating
-  newRating.value = newAverageRating
-
   try {
-    await $fetch(`http://localhost:4000/experts/${expert.value.id}/rating`, {
-      method: 'PATCH',
+    const response = await $fetch(`http://localhost:4000/experts/${expert.value.id}/rating`, {
+      method: 'POST',
       body: {
-        ratings: expert.value.ratings  // отправляем массив полностью
+        rating: star
       }
     })
+
+    // Обновляем локальные данные
+    expert.value.rating = response.rating
+    expert.value.ratingCount = response.ratingCount
+    if (expert.value.ratings) {
+      expert.value.ratings.push(star)
+    } else {
+      expert.value.ratings = [star]
+    }
+
+    currentRating.value = star
+    await fetchRatingStats()
+
+    console.log('✅ Оценка добавлена:', response)
   } catch (error) {
-    console.error('❌ Ошибка обновления рейтинга:', error)
+    console.error('❌ Ошибка добавления оценки:', error)
+  }
+}
+
+// Загрузка статистики рейтинга
+const fetchRatingStats = async () => {
+  if (!expert.value) return
+
+  try {
+    const response = await $fetch(`http://localhost:4000/experts/${expert.value.id}/rating/stats`)
+    ratingStats.value = response
+  } catch (error) {
+    console.error('❌ Ошибка загрузки статистики:', error)
   }
 }
 
@@ -1040,6 +1121,7 @@ onMounted(fetchExpert)
     opacity: 0;
     transform: scale(0.9) translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
@@ -1245,30 +1327,132 @@ onMounted(fetchExpert)
 }
 
 /* Стили для рейтинга */
-.rating-section {
-  margin-top: 2rem;
-  padding: 1.5rem;
-  background: #f9f9f9;
-  border-radius: 12px;
+/* Стили для отображения звезд с частичным заполнением */
+.stars-display {
+  font-size: 2.5rem;
+  position: relative;
+  display: inline-block;
 }
 
-.rating-section h3 {
-  margin-bottom: 1rem;
-  color: #333;
-}
-
-.stars {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 1rem;
-}
-
-.star {
-  font-size: 2rem;
-  cursor: pointer;
+.star-display {
   color: #ddd;
-  transition: all 0.2s ease;
-  user-select: none;
+  position: relative;
+  display: inline-block;
+}
+
+.star-display.full {
+  color: #ffd700;
+}
+
+.star-display.partial {
+  background: linear-gradient(90deg, #ffd700 var(--fill-percentage, 50%), #ddd var(--fill-percentage, 50%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.star-display.empty {
+  color: #ddd;
+}
+
+/* Стили для ввода рейтинга */
+.stars-input {
+  font-size: 2.5rem;
+  color: #ccc;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+.star-input {
+  margin: 0 5px;
+  transition: color 0.2s ease;
+}
+
+.star-input:hover {
+  color: #ffd700;
+  transform: scale(1.2);
+}
+
+.star-input.active {
+  color: #ffd700;
+}
+
+.star-input.hover {
+  color: #ffed4a;
+}
+
+/* Стили для статистики */
+.rating-stats {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+.stats-bars {
+  max-width: 300px;
+}
+
+.stat-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 10px;
+}
+
+.stat-star {
+  width: 40px;
+  font-weight: bold;
+}
+
+.stat-bar {
+  flex: 1;
+  height: 12px;
+  background: #e0e0e0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.stat-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ffd700, #ffed4a);
+  transition: width 0.3s ease;
+}
+
+.stat-count {
+  width: 30px;
+  text-align: right;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.rating-text strong {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #333;
+  
+  text-align: end;
+}
+
+.selected-rating {
+  color: #27ae60;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.rating-display {
+  display: flex;
+  align-items: center;
+  text-align: center;
+
+}
+
+.rating-input {
+  margin-top: 1rem;
+  padding: .5rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .star:hover {
@@ -1285,17 +1469,113 @@ onMounted(fetchExpert)
   font-weight: 600;
 }
 
+/* Стили для заголовка с рейтингом */
+.rating-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0.5rem 0 1rem 0;
+}
+
+/* Стили для отображения звезд с контурами и частичным заполнением */
+.stars-display {
+  display: flex;
+  gap: 2px;
+}
+
+.star-display {
+  position: relative;
+  display: inline-block;
+  font-size: 1.8rem;
+  color: #ddd;
+  /* Цвет контура */
+  -webkit-text-stroke: 1px #999;
+  /* Контур для звезд */
+ 
+}
+.star-display .star-outline {
+  text-shadow: 
+    -1px -1px 0 #999,
+     1px -1px 0 #999,
+    -1px  1px 0 #999,
+     1px  1px 0 #999;
+  color: transparent;
+}
+
+.star-display .star-outline,
+.star-display .star-fill {
+  display: inline-block;
+}
+
+.star-display .star-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  color: transparent;
+  background: linear-gradient(90deg, #ffd700 var(--fill-percentage, 0%), transparent var(--fill-percentage, 0%));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-stroke: 0;
+ 
+}
+
+.star-display.full .star-fill {
+  background: #ffd700;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.star-display.empty .star-fill {
+  background: transparent;
+}
+
 @media (max-width: 480px) {
   .complaint-modal-content {
     padding: 1.5rem;
     margin: 1rem;
   }
-  
+
   .complaint-btn {
     width: 100%;
     justify-content: center;
     font-size: 13px;
     padding: 12px;
+  }
+
+  .rating-header {
+    gap: 8px;
+  }
+
+  .star-display {
+    font-size: 1.5rem;
+  }
+
+  .rating-value {
+    font-size: 1.2rem;
+  }
+
+  .stars-input {
+    font-size: 1.8rem;
+  }
+
+}
+
+@media (max-width: 375px) {
+  .rating-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .star-display {
+    font-size: 1.3rem;
+  }
+
+  .rating-value {
+    font-size: 1.1rem;
   }
 }
 </style>

@@ -47,6 +47,10 @@ async create(createExpertDto: CreateExpertDto): Promise<Expert> {
   expert.alwaysAvailable = createExpertDto.alwaysAvailable || false;
   expert.paymentCode = createExpertDto.paymentCode;
   expert.status = this.getValidStatus(createExpertDto.status);
+  // Инициализируем рейтинги
+    expert.rating = 0;
+    expert.ratingCount = 0;
+    expert.ratings = '[]';
 
   const savedExpert = await this.expertsRepository.save(expert);
   await this.saveData();
@@ -104,6 +108,10 @@ async createWithFiles(
   expert.publicationDays = createExpertDto.publicationDays || 30;
   expert.paymentAmount = createExpertDto.paymentAmount || 0;
   expert.status = 'pending';
+  // Инициализируем рейтинги
+    expert.rating = 0;
+    expert.ratingCount = 0;
+    expert.ratings = '[]';
 
   // Сначала сохраняем эксперта, чтобы получить ID
   const savedExpert = await this.expertsRepository.save(expert);
@@ -527,5 +535,63 @@ async unverifyExpert(expertId: string): Promise<Expert> {
     return expert;
   }
 
+// Метод для добавления новой оценки
+  async addRating(expertId: string, rating: number): Promise<Expert> {
+    const expert = await this.findOne(expertId);
+    
+    // Парсим существующие оценки
+    let ratings: number[] = [];
+    if (expert.ratings) {
+      try {
+        ratings = JSON.parse(expert.ratings);
+      } catch (e) {
+        ratings = [];
+      }
+    }
 
+    // Добавляем новую оценку
+    ratings.push(rating);
+    
+    // Пересчитываем средний рейтинг
+    const averageRating = ratings.reduce((sum, r) => sum + r, 0) / ratings.length;
+    
+    // Обновляем эксперта
+    expert.ratings = JSON.stringify(ratings);
+    expert.rating = parseFloat(averageRating.toFixed(2));
+    expert.ratingCount = ratings.length;
+
+    const savedExpert = await this.expertsRepository.save(expert);
+    await this.saveData();
+    
+    console.log(`⭐ Добавлена оценка ${rating} для эксперта ${expertId}. Новый рейтинг: ${averageRating.toFixed(2)}`);
+    
+    return savedExpert;
+  }
+
+  // Метод для получения детальной информации о рейтинге
+  getRatingStats(ratings: number[]) {
+    if (!ratings.length) {
+      return {
+        average: 0,
+        count: 0,
+        distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+      };
+    }
+
+    const distribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    ratings.forEach(rating => {
+      const star = Math.round(rating);
+      if (star >= 1 && star <= 5) {
+        distribution[star]++;
+      }
+    });
+
+    const average = ratings.reduce((sum, r) => sum + r, 0) / ratings.length;
+
+    return {
+      average: parseFloat(average.toFixed(2)),
+      count: ratings.length,
+      distribution
+    };
+  }
 }
