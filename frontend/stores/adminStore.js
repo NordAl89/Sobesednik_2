@@ -2,71 +2,68 @@ import { defineStore } from 'pinia'
 
 export const useAdminStore = defineStore('admin', {
   state: () => ({
-    isAuthenticated: process.client ? localStorage.getItem('adminAuthenticated') === 'true' : false,
-    loginTime: process.client ? localStorage.getItem('adminLoginTime') : null,
-    loading: false
+    isAuthenticated: false,
+    loginTime: null,
+    loading: false,
   }),
 
   actions: {
     async login(loginData) {
-      this.loading = true;
+      this.loading = true
+
       try {
-        // Проверяем credentials
-        if (loginData.login === 'conversation_admin' && loginData.password === '1111') {
-          this.isAuthenticated = true;
-          this.loginTime = new Date().toISOString();
-          
-          // Сохраняем в localStorage
+        const res = await $fetch('http://localhost:4000/admin/login', {
+          method: 'POST',
+          body: loginData
+        })
+
+        if (res.success) {
+          this.isAuthenticated = true
+          this.loginTime = new Date().toISOString()
+
           if (process.client) {
-            localStorage.setItem('adminAuthenticated', 'true');
-            localStorage.setItem('adminLoginTime', this.loginTime);
+            localStorage.setItem('adminAuthenticated', 'true')
+            localStorage.setItem('adminLoginTime', this.loginTime)
           }
-          
-          return true;
-        } else {
-          throw new Error('Неверный логин или пароль');
         }
-      } catch (error) {
-        this.isAuthenticated = false;
-        throw error;
+      } catch (err) {
+        this.isAuthenticated = false
+        throw new Error(err?.data?.message || 'Ошибка авторизации')
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
 
     logout() {
-      this.isAuthenticated = false;
-      this.loginTime = null;
+      this.isAuthenticated = false
+      this.loginTime = null
+
       if (process.client) {
-        localStorage.removeItem('adminAuthenticated');
-        localStorage.removeItem('adminLoginTime');
+        localStorage.removeItem('adminAuthenticated')
+        localStorage.removeItem('adminLoginTime')
       }
     },
 
     checkAuth() {
-      if (process.server) return false;
+      if (process.server) return false
 
-      const auth = localStorage.getItem('adminAuthenticated');
-      const loginTime = localStorage.getItem('adminLoginTime');
-      
+      const auth = localStorage.getItem('adminAuthenticated')
+      const loginTime = localStorage.getItem('adminLoginTime')
+
       if (auth === 'true' && loginTime) {
-        const loginDate = new Date(loginTime);
-        const now = new Date();
-        const hoursDiff = (now.getTime() - loginDate.getTime()) / (1000 * 60 * 60);
-        
+        const loginDate = new Date(loginTime)
+        const now = new Date()
+        const hoursDiff = (now - loginDate) / (1000 * 60 * 60)
+
         if (hoursDiff < 8) {
-          this.isAuthenticated = true;
-          this.loginTime = loginTime;
-          return true;
+          this.isAuthenticated = true
+          return true
         } else {
-          this.logout();
+          this.logout()
         }
       }
-      return false;
-    }
-  },
 
-  getters: {
-    isAuth: (state) => state.isAuthenticated
+      return false
+    }
   }
-});
+})
