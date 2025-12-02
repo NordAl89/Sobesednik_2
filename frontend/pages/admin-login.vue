@@ -26,7 +26,7 @@
             v-model="form.password" 
             type="password" 
             required 
-            placeholder="111"
+            placeholder="введите пароль"
             autocomplete="current-password"
           />
         </div>

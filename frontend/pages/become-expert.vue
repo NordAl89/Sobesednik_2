@@ -584,7 +584,7 @@ const requestModeration = async () => {
 }
 
 // счетчик для выбора срока публикации
-const selectedDays = ref(30)
+const selectedDays = ref(60)
 
 const paymentAmount = computed(() => {
   const base = 1000

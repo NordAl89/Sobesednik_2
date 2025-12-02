@@ -7,6 +7,8 @@ import { dirname, resolve } from 'node:path'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export default defineNuxtConfig({
+
+  
   // Дата совместимости Nuxt (важно для стабильности)
   compatibilityDate: '2025-07-15',
 
@@ -17,13 +19,10 @@ export default defineNuxtConfig({
   srcDir: './',
 
   // Плагины
-  plugins: [
-    '~/plugins/pinia.js' // наш плагин Pinia
-  ],
-
-   modules: [
+ modules: [
+    '@pinia/nuxt', // ← ДОБАВЬТЕ ЭТУ СТРОКУ (важно: перед @nuxt/image)
     '@nuxt/image'
-  ],  
+  ],
   
   image: {
     inject: true,
@@ -94,4 +93,6 @@ export default defineNuxtConfig({
       }
     }
   }
+
+ 
 })
