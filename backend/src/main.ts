@@ -1,3 +1,4 @@
+// src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -6,29 +7,51 @@ import { ExpertsService } from './experts/experts.service';
 import { join } from 'path';
 import * as express from 'express';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // Включаем CORS для фронтенда
+  // ✅ Cookie parser для админ-аутентификации
+  app.use(cookieParser());
+
+  // ✅ Включаем CORS
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3001'], // Можно добавить несколько origin
+    origin: ['http://localhost:3000', 'http://localhost:3001'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   });
 
-  // Валидация
+  // ✅ Валидация
   app.useGlobalPipes(new ValidationPipe({
-    whitelist: true, // Удаляет поля, которых нет в DTO
-    forbidNonWhitelisted: false, // Изменено на false для поддержки FormData с дополнительными полями
-    transform: true, // Преобразует типы (строки в числа и т.д.)
+    whitelist: true,
+    forbidNonWhitelisted: false,
+    transform: true,
   }));
 
-  // Создаем папку uploads если её нет
-  const uploadsDir = join(__dirname, '..', 'uploads');
-  const expertsDir = join(uploadsDir, 'experts');
+  // ✅ ВАЖНО: Статические файлы должны быть ПЕРЕД другими middleware
+  // Путь должен быть абсолютным
+  const uploadsDir = join(process.cwd(), 'uploads');
+  
+  // Логируем путь для отладки
+  console.log('📁 Static files directory:', uploadsDir);
+  console.log('📁 Full path to expert image:', join(uploadsDir, 'experts', '7602887344', '98b1751468f7c36f85c42868bbc44442.png'));
+  
+  // Проверяем существует ли файл
   const fs = await import('fs');
+  const imagePath = join(uploadsDir, 'experts', '7602887344', '98b1751468f7c36f85c42868bbc44442.png');
+  if (fs.existsSync(imagePath)) {
+    console.log('✅ Файл существует на сервере');
+  } else {
+    console.log('❌ Файл НЕ найден по пути:', imagePath);
+  }
+
+  // ✅ Обслуживаем статические файлы
+  app.use('/uploads', express.static(uploadsDir));
+
+  // ✅ Создаем папки если их нет
+  const expertsDir = join(uploadsDir, 'experts');
   if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
     console.log('📁 Создана папка uploads');
@@ -38,10 +61,7 @@ async function bootstrap() {
     console.log('📁 Создана папка uploads/experts');
   }
 
-  // Статические файлы - исправленный путь
-  app.use('/uploads', express.static(uploadsDir));
-
-  // Swagger документация
+  // ✅ Swagger документация
   const config = new DocumentBuilder()
     .setTitle('Experts API')
     .setDescription('API для системы экспертов-собеседников')
@@ -52,7 +72,6 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   try {
-    // Запускаем планировщик проверки истекших анкет
     const expertsService = app.get(ExpertsService);
     await expertsService.startExpirationChecker();
     console.log('✅ Планировщик истекших анкет запущен');
@@ -63,7 +82,8 @@ async function bootstrap() {
   await app.listen(4000);
   console.log('🚀 Server is running on http://localhost:4000');
   console.log('📚 Swagger documentation: http://localhost:4000/api');
-  console.log('📁 Static files: http://localhost:4000/uploads');
+  console.log('📁 Static files available at: http://localhost:4000/uploads/');
+  console.log('🖼️ Test image URL: http://localhost:4000/uploads/experts/7602887344/98b1751468f7c36f85c42868bbc44442.png');
 }
 
 bootstrap().catch(error => {
