@@ -21,6 +21,20 @@ import { LoginExpertDto } from './dto/login-expert.dto';
 export class ExpertsController {
   constructor(private readonly expertsService: ExpertsService) {}
 
+  // Восстановление доступа к аккаунту эксперта
+@Post('reset')
+async sendResetCode(@Body() body: any) {
+  const { login, telegram } = body;
+  return this.expertsService.sendResetCode(login, telegram);
+}
+@Post('reset/confirm')
+async confirmReset(@Body() body: any) {
+  const { login, code, password } = body;
+  return this.expertsService.resetPassword(login, code, password);
+}
+
+
+
   @Patch(':id')
   async update(
     @Param('id') id: string, 
@@ -719,4 +733,5 @@ async unverifyExpert(@Param('id') id: string) {
     expertIsVerified: expert.expertIsVerified
   };
 }
+
 }

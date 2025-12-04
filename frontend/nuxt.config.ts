@@ -18,6 +18,13 @@ export default defineNuxtConfig({
   // Автоматическая генерация маршрутов из папки pages
   srcDir: './',
 
+  // Настройки runtimeConfig для локалной и публичной конфигурации. Разкомментировать после развёртки на сервере
+  //   runtimeConfig: {
+  //   public: {
+  //     apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:4000'
+  //   }
+  // },
+
   // Плагины
  modules: [
     '@pinia/nuxt', // ← ДОБАВЬТЕ ЭТУ СТРОКУ (важно: перед @nuxt/image)

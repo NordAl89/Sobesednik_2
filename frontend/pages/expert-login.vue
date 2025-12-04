@@ -18,6 +18,9 @@
       
       <div v-if="error" class="error">{{ error }}</div>
     </form>
+    <p class="forgot" @click="navigateTo('/expert-reset')">
+  Забыли пароль?
+</p>
   </div>
 </template>
 
@@ -105,6 +108,14 @@ button:disabled {
   text-align: center;
   font-size: 0.9em;
 }
+
+.forgot {
+  text-align: center;
+  margin-top: 10px;
+  cursor: pointer;
+  color: #2b7bff;
+}
+
 
 /* ==========================================================
    📱 АДАПТИВНОСТЬ

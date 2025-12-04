@@ -110,4 +110,12 @@ export class Expert {
     const max = 9999999999;
     this.id = Math.floor(min + Math.random() * (max - min)).toString();
   }
+
+  @Column({ nullable: true }) // Добавлено поле для сброса пароля
+resetCode: string | null;
+
+@Column({ nullable: true })
+telegramChatId: string;    // Добавлено поле для хранения chat ID телеграм пользователя
+
+
 }

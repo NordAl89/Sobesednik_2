@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { Expert } from './entities/expert.entity';
 import { CreateExpertDto } from './dto/create-expert.dto';
 import { TelegramService } from '../telegram/telegram.service';
+import { HttpException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class ExpertsService {
@@ -594,4 +596,51 @@ async unverifyExpert(expertId: string): Promise<Expert> {
       distribution
     };
   }
+
+  // Восстановление доступа к аккаунту эксперта
+  async sendResetCode(login: string, telegram: string) {
+  const expert = await this.expertsRepository.findOne({ where: { login } });
+
+  if (!expert) {
+    throw new HttpException('Пользователь не найден', 404);
+  }
+
+  if (expert.telegram !== telegram) {
+    throw new HttpException('Telegram не совпадает', 400);
+  }
+
+  // Генерация кода
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+  // Сохранение
+  expert.resetCode = code;
+  await this.expertsRepository.save(expert);
+
+  // Отправка сообщения
+  await this.telegramService.sendMessage(
+    telegram,
+    `Ваш код для восстановления пароля: ${code}`
+  );
+
+  return { message: 'Код отправлен в Telegram' };
+}
+
+async resetPassword(login: string, code: string, password: string) {
+  const expert = await this.expertsRepository.findOne({ where: { login } });
+
+  if (!expert || expert.resetCode !== code) {
+    throw new HttpException('Неверный код', 400);
+  }
+
+  // Хэшируем пароль
+  const hashed = await bcrypt.hash(password, 10);
+
+  expert.password = hashed;
+  expert.resetCode = null;
+
+  await this.expertsRepository.save(expert);
+
+  return { message: 'Пароль успешно изменён' };
+}
+
 }

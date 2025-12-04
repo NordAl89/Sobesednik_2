@@ -11,7 +11,53 @@ export class TelegramService {
     // Токен бота нужно добавить в .env
     this.botToken = process.env.TELEGRAM_BOT_TOKEN || '';
     this.apiBase = `https://api.telegram.org/bot${this.botToken}`;
+    this.startPolling();
   }
+
+  async startPolling() {
+  try {
+    this.logger.log('🚀 Telegram polling started');
+
+    // дергаем getUpdates каждые 2 секунды
+    setInterval(async () => {
+      try {
+        await fetch(`${this.apiBase}/getUpdates`);
+      } catch (e) {
+        this.logger.error('Polling error', e);
+      }
+    }, 2000);
+
+  } catch (e) {
+    this.logger.error('❌ Failed to start polling', e);
+  }
+}
+
+
+  async getChatIdByUsername(username: string): Promise<number | null> {
+  if (!username) return null;
+
+  // Убираем @
+  username = username.replace('@', '');
+
+  try {
+    const response = await fetch(`${this.apiBase}/getUpdates`);
+    const data = await response.json();
+
+    if (!data.ok) return null;
+
+    for (const upd of data.result) {
+      const from = upd.message?.from;
+      if (from?.username?.toLowerCase() === username.toLowerCase()) {
+        return from.id;
+      }
+    }
+
+    return null;
+  } catch (e) {
+    this.logger.error('Ошибка getChatIdByUsername', e);
+    return null;
+  }
+}
 
   async sendMessage(chatId: string, text: string): Promise<void> {
     if (!this.botToken) {
@@ -42,4 +88,18 @@ export class TelegramService {
       this.logger.error('❌ Ошибка отправки Telegram-сообщения', error);
     }
   }
+
+  async sendToUsername(username: string, text: string): Promise<void> {
+  const chatId = await this.getChatIdByUsername(username);
+
+  if (!chatId) {
+    this.logger.error(
+      `❌ Не могу отправить сообщение ${username}. Он должен сначала написать боту.`
+    );
+    return;
+  }
+
+  return this.sendMessage(chatId.toString(), text);
+}
+
 }
