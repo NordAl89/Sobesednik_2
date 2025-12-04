@@ -59,35 +59,49 @@ export class TelegramService {
   }
 }
 
-  async sendMessage(chatId: string, text: string): Promise<void> {
-    if (!this.botToken) {
-      this.logger.warn('⚠️ Telegram Bot Token не указан');
-      return;
-    }
-
-    try {
-      const response = await fetch(`${this.apiBase}/sendMessage`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text,
-          parse_mode: 'HTML',
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Ошибка Telegram API: ${errorText}`);
-      }
-
-      this.logger.log(`✅ Сообщение отправлено в Telegram: ${chatId}`);
-    } catch (error) {
-      this.logger.error('❌ Ошибка отправки Telegram-сообщения', error);
-    }
+  async sendMessage(chatIdOrUsername: string, text: string): Promise<void> {
+  if (!this.botToken) {
+    this.logger.warn('⚠️ Telegram Bot Token не указан');
+    return;
   }
+
+  try {
+    let chatId = chatIdOrUsername;
+    
+    // Если передан username (начинается с @), пытаемся получить chat_id
+    if (chatIdOrUsername.startsWith('@')) {
+      const foundChatId = await this.getChatIdByUsername(chatIdOrUsername);
+      if (!foundChatId) {
+        this.logger.error(`❌ Не удалось найти chat_id для ${chatIdOrUsername}`);
+        throw new Error(`Пользователь ${chatIdOrUsername} должен сначала написать боту`);
+      }
+      chatId = foundChatId.toString();
+    }
+
+    const response = await fetch(`${this.apiBase}/sendMessage`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        parse_mode: 'HTML',
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Ошибка Telegram API: ${errorText}`);
+    }
+
+    this.logger.log(`✅ Сообщение отправлено в Telegram: ${chatId}`);
+  } catch (error) {
+    this.logger.error('❌ Ошибка отправки Telegram-сообщения', error);
+    // Пробрасываем ошибку дальше, чтобы фронтенд мог ее обработать
+    throw error;
+  }
+}
 
   async sendToUsername(username: string, text: string): Promise<void> {
   const chatId = await this.getChatIdByUsername(username);

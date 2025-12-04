@@ -605,24 +605,43 @@ async unverifyExpert(expertId: string): Promise<Expert> {
     throw new HttpException('Пользователь не найден', 404);
   }
 
+  // Проверяем формат telegram
+  if (!telegram.startsWith('@')) {
+    throw new HttpException('Укажите Telegram в формате @username', 400);
+  }
+
   if (expert.telegram !== telegram) {
-    throw new HttpException('Telegram не совпадает', 400);
+    throw new HttpException('Telegram не совпадает с указанным в анкете', 400);
   }
 
   // Генерация кода
   const code = Math.floor(100000 + Math.random() * 900000).toString();
 
-  // Сохранение
+  // Сохранение кода
   expert.resetCode = code;
   await this.expertsRepository.save(expert);
 
-  // Отправка сообщения
-  await this.telegramService.sendMessage(
-    telegram,
-    `Ваш код для восстановления пароля: ${code}`
-  );
+  try {
+    // Отправка сообщения
+    await this.telegramService.sendMessage(
+      telegram, // передаем username в формате @username
+      `Код для восстановления пароля: ${code}\n\nВернитесь на сайт и введите этот код.`
+    );
 
-  return { message: 'Код отправлен в Telegram' };
+    return { 
+      success: true, 
+      message: 'Код отправлен в Telegram' 
+    };
+  } catch (error) {
+    // Если не удалось отправить сообщение
+    expert.resetCode = null;
+    await this.expertsRepository.save(expert);
+    
+    throw new HttpException(
+      'Не удалось отправить код. Убедитесь, что вы написали боту @sobesednik_helper_bot',
+      400
+    );
+  }
 }
 
 async resetPassword(login: string, code: string, password: string) {
