@@ -13,9 +13,26 @@
           <input v-model="form.login" type="text" required />
         </label>
 
-        <label>
-          Пароль *
-          <input v-model="form.password" type="password" placeholder="минимум 6 символов" required />
+        <label class="password-field">
+          Пароль * минимум 6 символов
+          <div class="password-input-wrapper">
+            <input 
+              v-model="form.password" 
+              :type="showPassword ? 'text' : 'password'" 
+              placeholder="минимум 6 символов" 
+              required 
+              class="password-input"
+            />
+            <button 
+              type="button" 
+              class="toggle-password"
+              @click="togglePasswordVisibility"
+              tabindex="-1"
+            >
+              <span v-if="showPassword" class="icon">👁️</span>
+              <span v-else class="icon">👁️‍🗨️</span>
+            </button>
+          </div>
         </label>
 
         <label>
@@ -41,11 +58,6 @@
           Telegram *
           <input v-model="form.telegram" type="text" placeholder="@username" required />
         </label>
-
-        <!-- <label>
-          Другие мессенджеры
-          <input v-model="form.otherMessengers" type="text" placeholder="WhatsApp, Viber, etc." />
-        </label> -->
       </div>
 
       <!-- Темы и настройки -->
@@ -57,10 +69,10 @@
           <textarea
             v-model="form.about"
             required
-            placeholder="Коротко о себе, ваших интересах и предпочтениях. В конце можете указать стоимость видео, аудио, письменного общения (до 500 символов)"
-            maxlength="500"
+            placeholder="Коротко о себе, ваших интересах и предпочтениях. В конце можете указать стоимость видео, аудио, письменного общения (до 1000 символов)"
+            maxlength="1000"
           ></textarea>
-          <small>{{ form.about.length }}/500</small>
+          <small>{{ form.about.length }}/1000</small>
         </label>
 
         <label>
@@ -188,41 +200,12 @@
       <div class="payment-modal">
         <h3>Уважаемый собеседник, благодарим Вас за публикацию анкеты!</h3>
         <p><strong>Срок бесплатной публикации 60 дней</strong></p>
-        <!-- <h3>Оплата публикации анкеты</h3> -->
-        <!-- <p>
-          Возникли сложности с оплатой? Воспользуйтесь 
-          <a href="/faq" target="_blank" rel="noopener noreferrer" class="faq-link">FAQ</a>.
-        </p> -->
         
         <div class="payment-info">
-          <!-- <h4>Выберите срок публикации</h4> -->
-  
-          <!-- Ползунок выбора срока -->
-          <!-- <div class="slider-section">
-            <button @click="selectedDays = Math.max(30, selectedDays - 30)">◀</button>
-            <input 
-              type="range"
-              min="30"
-              max="360"
-              step="30"
-              v-model="selectedDays"
-            />
-            <button @click="selectedDays = Math.min(360, selectedDays + 30)">▶</button>
-          </div> -->
-        
-          <!-- <p><strong>Срок публикации:</strong> {{ selectedDays }} дней</p>
-          <p><strong>Сумма к оплате:</strong> {{ paymentAmount }} рублей</p>
-          <p v-if="discountPercent > 0" class="discount-text">
-            💰 Вы экономите {{ discountPercent }}%
-          </p>
-          <p><strong>Реквизиты:</strong> 2200 0000 0000 0000 (Тинькофф)</p>
-          <p><strong>Код оплаты:</strong> <span class="payment-code">{{ paymentCode }}</span></p>
-          <p class="important">Обязательно укажите этот код в комментарии к платежу!</p> -->
         </div>
 
         <div class="payment-actions">
           <button @click="confirmPayment" :disabled="paymentLoading" class="confirm-btn">
-            <!-- {{ paymentLoading ? 'Подтверждение...' : 'Оплата произведена' }} -->
             {{ paymentLoading ? 'Подтверждение...' : 'Опубликовать анкету' }}
           </button>
           <button @click="showPaymentModal = false" class="cancel-btn">Отмена</button>
@@ -248,6 +231,7 @@ const loading = ref(false)
 const paymentLoading = ref(false)
 const showPaymentModal = ref(false)
 const paymentCode = ref('')
+const showPassword = ref(false) // Добавлено состояние видимости пароля
 
 // Данные формы
 const form = ref({
@@ -267,7 +251,6 @@ const form = ref({
   noForbiddenTopics: false,
   alwaysAvailable: false,
   expertIsVerified: false,
-
 })
 
 // Данные для файлов
@@ -276,6 +259,11 @@ const mainPhotoPreview = ref('')
 const galleryFiles = ref([])
 const galleryPreviews = ref([])
 const galleryInput = ref(null)
+
+// Функция переключения видимости пароля
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value
+}
 
 // Валидация формы
 const isFormValid = computed(() => {
@@ -288,7 +276,6 @@ const isFormValid = computed(() => {
     form.value.telegram,
     form.value.about,
     form.value.allowedTopics,
-    // form.value.forbiddenTopics,
     form.value.price
   ]
   
@@ -661,6 +648,52 @@ label.required-field-missing {
   position: relative;
 }
 
+/* Стили для поля пароля */
+.password-field {
+  position: relative;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input {
+  padding-right: 40px; /* Место для кнопки */
+  width: 100%;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 8px;
+  background: transparent;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  font-size: 1.1em;
+  transition: color 0.2s;
+}
+
+.toggle-password:hover {
+  color: #2b7bff;
+}
+
+.toggle-password:focus {
+  outline: 2px solid #2b7bff;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.icon {
+  display: inline-block;
+  user-select: none;
+}
+
 input,
 select,
 textarea {
@@ -949,6 +982,15 @@ input[type="file"] {
   textarea {
     font-size: 16px; /* Предотвращает zoom на iOS */
     padding: 8px;
+  }
+
+  .password-input {
+    padding-right: 38px;
+  }
+
+  .toggle-password {
+    right: 6px;
+    padding: 5px;
   }
 
   .checkboxes {
