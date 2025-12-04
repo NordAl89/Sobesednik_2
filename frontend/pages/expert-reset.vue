@@ -10,12 +10,12 @@
                         Откройте Telegram-бот:
                         <a href="https://t.me/sobesednik_helper_bot" target="_blank">@sobesednik_helper_bot</a>
                     </li>
-                    <li>Нажмите кнопку <strong>Start</strong> или отправьте команду <code>/start</code></li>
-                    <li>Дождитесь приветственного сообщения от бота</li>
+                    <li>Нажмите кнопку <strong>Start</strong></li>
+                    <li>Напишите и отправьте любое слово</li>
                     <li>Вернитесь на эту страницу и укажите:
                         <ul>
                             <li>ваш логин</li>
-                            <li>ваше имя в Telegram (например: <code>@AlexFerrero9</code>)</li>
+                            <li>ваше имя в Telegram</li>
                         </ul>
                     </li>
                     <li>Нажмите «Отправить код»</li>
