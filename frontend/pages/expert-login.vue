@@ -7,9 +7,25 @@
         <input v-model="form.login" type="text" required />
       </label>
       
-      <label>
+      <label class="password-field">
         Пароль
-        <input v-model="form.password" type="password" required />
+        <div class="password-input-wrapper">
+          <input 
+            v-model="form.password" 
+            :type="showPassword ? 'text' : 'password'" 
+            required 
+            class="password-input"
+          />
+          <button 
+            type="button" 
+            class="toggle-password"
+            @click="togglePasswordVisibility"
+            tabindex="-1"
+          >
+            <span v-if="showPassword" class="icon">👁️</span>
+            <span v-else class="icon">👁️‍🗨️</span>
+          </button>
+        </div>
       </label>
       
       <button type="submit" :disabled="loading">
@@ -19,13 +35,15 @@
       <div v-if="error" class="error">{{ error }}</div>
     </form>
     <p class="forgot" @click="navigateTo('/expert-reset')">
-  Забыли пароль?
-</p>
+      Забыли пароль?
+    </p>
   </div>
 </template>
 
 <script setup>
 import { useExpertsStore } from '~/stores/expertsStore'
+import { ref } from 'vue'
+
 const form = ref({
   login: '',
   password: ''
@@ -33,6 +51,11 @@ const form = ref({
 
 const loading = ref(false)
 const error = ref('')
+const showPassword = ref(false)
+
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value
+}
 
 const handleLogin = async () => {
   loading.value = true
@@ -87,18 +110,65 @@ input {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  width: 100%;
 }
 
-button {
+/* Стили для поля пароля */
+.password-field {
+  position: relative;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input {
+  padding-right: 40px; /* Место для кнопки */
+}
+
+.toggle-password {
+  position: absolute;
+  right: 8px;
+  background: transparent;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  font-size: 1.1em;
+  transition: color 0.2s;
+}
+
+.toggle-password:hover {
+  color: #2b7bff;
+}
+
+.toggle-password:focus {
+  outline: 2px solid #2b7bff;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.icon {
+  display: inline-block;
+  user-select: none;
+}
+
+button[type="submit"] {
   padding: 10px;
   background: #2b7bff;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  font-weight: 600;
 }
 
-button:disabled {
+button[type="submit"]:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -115,7 +185,6 @@ button:disabled {
   cursor: pointer;
   color: #2b7bff;
 }
-
 
 /* ==========================================================
    📱 АДАПТИВНОСТЬ
@@ -141,7 +210,16 @@ button:disabled {
     font-size: 14px;
   }
 
-  button {
+  .password-input {
+    padding-right: 38px;
+  }
+
+  .toggle-password {
+    right: 6px;
+    padding: 5px;
+  }
+
+  button[type="submit"] {
     padding: 12px;
     font-size: 15px;
   }

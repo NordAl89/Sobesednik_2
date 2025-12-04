@@ -55,17 +55,49 @@
             <form @submit.prevent="handleConfirm" class="confirm-form">
                 <label>
                     6-значный код из Telegram
-                    <input v-model="confirmForm.code" type="text" maxlength="6" required />
+                    <input v-model="confirmForm.code" type="text" placeholder="code" maxlength="6" required />
                 </label>
                 
-                <label>
+                <label class="password-field">
                     Новый пароль
-                    <input v-model="confirmForm.password" type="password" required />
+                    <div class="password-input-wrapper">
+                        <input 
+                            v-model="confirmForm.password" 
+                            :type="showNewPassword ? 'text' : 'password'" 
+                            required 
+                            class="password-input"
+                        />
+                        <button 
+                            type="button" 
+                            class="toggle-password"
+                            @click="toggleNewPasswordVisibility"
+                            tabindex="-1"
+                        >
+                            <span v-if="showNewPassword" class="icon">👁️</span>
+                            <span v-else class="icon">👁️‍🗨️</span>
+                        </button>
+                    </div>
                 </label>
                 
-                <label>
+                <label class="password-field">
                     Подтвердите пароль
-                    <input v-model="confirmForm.confirmPassword" type="password" required />
+                    <div class="password-input-wrapper">
+                        <input 
+                            v-model="confirmForm.confirmPassword" 
+                            :type="showConfirmPassword ? 'text' : 'password'" 
+                            required 
+                            class="password-input"
+                        />
+                        <button 
+                            type="button" 
+                            class="toggle-password"
+                            @click="toggleConfirmPasswordVisibility"
+                            tabindex="-1"
+                        >
+                            <span v-if="showConfirmPassword" class="icon">👁️</span>
+                            <span v-else class="icon">👁️‍🗨️</span>
+                        </button>
+                    </div>
                 </label>
                 
                 <div class="form-actions">
@@ -85,6 +117,8 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
+
 const form = ref({
     login: '',
     telegram: ''
@@ -103,6 +137,16 @@ const confirmError = ref('')
 const message = ref('')
 const confirmMessage = ref('')
 const showConfirm = ref(false)
+const showNewPassword = ref(false)
+const showConfirmPassword = ref(false)
+
+const toggleNewPasswordVisibility = () => {
+    showNewPassword.value = !showNewPassword.value
+}
+
+const toggleConfirmPasswordVisibility = () => {
+    showConfirmPassword.value = !showConfirmPassword.value
+}
 
 const handleReset = async () => {
     loading.value = true
@@ -227,9 +271,55 @@ input {
     border: 1px solid #ccc;
     border-radius: 6px;
     font-size: 16px;
+    width: 100%;
 }
 
-button {
+/* Стили для полей пароля */
+.password-field {
+    position: relative;
+}
+
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input {
+    padding-right: 40px; /* Место для кнопки */
+}
+
+.toggle-password {
+    position: absolute;
+    right: 8px;
+    background: transparent;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    font-size: 1.1em;
+    transition: color 0.2s;
+}
+
+.toggle-password:hover {
+    color: #2b7bff;
+}
+
+.toggle-password:focus {
+    outline: 2px solid #2b7bff;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+.icon {
+    display: inline-block;
+    user-select: none;
+}
+
+button[type="submit"] {
     padding: 12px;
     background: #2b7bff;
     color: white;
@@ -239,7 +329,7 @@ button {
     font-weight: 600;
 }
 
-button:disabled {
+button[type="submit"]:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }
@@ -272,5 +362,26 @@ button:disabled {
 
 .back-btn:hover {
     background: #5a6268;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 480px) {
+    .reset-page {
+        padding: 15px;
+        margin: 20px auto;
+    }
+    
+    .password-input {
+        padding-right: 36px;
+    }
+    
+    .toggle-password {
+        right: 6px;
+        padding: 5px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
 }
 </style>

@@ -15,7 +15,7 @@
 
         <label>
           Пароль *
-          <input v-model="form.password" type="password" required />
+          <input v-model="form.password" type="password" placeholder="минимум 6 символов" required />
         </label>
 
         <label>
