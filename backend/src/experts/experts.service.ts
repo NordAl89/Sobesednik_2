@@ -29,7 +29,7 @@ async create(createExpertDto: CreateExpertDto): Promise<Expert> {
 
   const expert = new Expert();
   expert.login = createExpertDto.login;
-  expert.password = createExpertDto.password;
+  expert.password = await bcrypt.hash(createExpertDto.password, 10);
   expert.name = createExpertDto.name;
   expert.age = createExpertDto.age;
   expert.gender = createExpertDto.gender;
@@ -88,7 +88,7 @@ async createWithFiles(
 
   const expert = new Expert();
   expert.login = createExpertDto.login;
-  expert.password = createExpertDto.password;
+  expert.password = await bcrypt.hash(createExpertDto.password, 10);
   expert.name = createExpertDto.name;
   expert.age = createExpertDto.age;
   expert.gender = createExpertDto.gender;
@@ -202,13 +202,16 @@ private async moveFilesToExpertFolder(
 }
 
   // Валидация эксперта для входа
-  async validateExpert(login: string, password: string): Promise<Expert | null> {
-    const expert = await this.expertsRepository.findOne({ where: { login } });
-    if (expert && expert.password === password) {
-      return expert;
-    }
-    return null;
-  }
+ async validateExpert(login: string, password: string): Promise<Expert | null> {
+  const expert = await this.expertsRepository.findOne({ where: { login } });
+  if (!expert) return null;
+
+  // сравниваем введённый пароль с хэшем из БД
+  const isMatch = await bcrypt.compare(password, expert.password);
+  if (!isMatch) return null;
+
+  return expert;
+}
 
   async getProfile(id: string): Promise<Expert> {
     const expert = await this.findOne(id);
@@ -652,9 +655,9 @@ async resetPassword(login: string, code: string, password: string) {
   }
 
   // Хэшируем пароль
-  // const hashed = await bcrypt.hash(password, 10);
+  const hashed = await bcrypt.hash(password, 10);
 
-  expert.password = password;
+  expert.password = hashed;
   expert.resetCode = null;
 
   await this.expertsRepository.save(expert);

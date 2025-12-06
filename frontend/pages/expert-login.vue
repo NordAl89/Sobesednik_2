@@ -4,14 +4,14 @@
     <form @submit.prevent="handleLogin" class="login-form">
       <label>
         Логин
-        <input v-model="form.login" type="text" required />
+        <input v-model.trim="form.login" type="text" required />
       </label>
       
       <label class="password-field">
         Пароль
         <div class="password-input-wrapper">
           <input 
-            v-model="form.password" 
+            v-model.trim="form.password" 
             :type="showPassword ? 'text' : 'password'" 
             required 
             class="password-input"
