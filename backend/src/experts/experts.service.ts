@@ -652,9 +652,9 @@ async resetPassword(login: string, code: string, password: string) {
   }
 
   // Хэшируем пароль
-  const hashed = await bcrypt.hash(password, 10);
+  // const hashed = await bcrypt.hash(password, 10);
 
-  expert.password = hashed;
+  expert.password = password;
   expert.resetCode = null;
 
   await this.expertsRepository.save(expert);
