@@ -1,10 +1,12 @@
-import axios from 'axios';
+import axios from 'axios'
 
-const API_URL = 'http://localhost:4000'; // адрес backend
+export function useApi() {
+  const config = useRuntimeConfig()
 
-export const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+  return axios.create({
+    baseURL: config.public.apiBase,
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  })
+}

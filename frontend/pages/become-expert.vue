@@ -292,9 +292,10 @@ const isFormValid = computed(() => {
 // Загрузка данных для редактирования
 onMounted(async () => {
   if (isEditMode.value) {
+    const config = useRuntimeConfig() 
     try {
       console.log('🔄 Загрузка данных эксперта ID:', isEditMode.value)
-      const response = await $fetch(`http://localhost:4000/experts/profile/${isEditMode.value}`)
+      const response = await $fetch(`${config.public.apiBase}/experts/profile/${isEditMode.value}`)
       existingExpert.value = response
       
       console.log('📦 Полученные данные:', response)
@@ -313,7 +314,7 @@ onMounted(async () => {
       
       // Если есть существующее фото, показываем его
       if (existingExpert.value.mainPhotoUrl) {
-        mainPhotoPreview.value = `http://localhost:4000${existingExpert.value.mainPhotoUrl}`
+        mainPhotoPreview.value = `${config.public.fileBase}${existingExpert.value.mainPhotoUrl}`
       }
       
       // Загружаем существующую галерею
@@ -338,7 +339,7 @@ onMounted(async () => {
         
         // Добавляем превью существующих изображений
         galleryPreviews.value = galleryUrlsArray.map(url => ({
-          url: `http://localhost:4000${url}`,
+          url: `${config.public.fileBase}${url}`,
           type: url.match(/\.(jpg|jpeg|png|gif|webp|bmp)$/i) ? 'image' : 'video',
           isExisting: true // Флаг что это существующий файл, не новый
         }))

@@ -208,8 +208,9 @@ const formattedTime = computed(() => {
 
 // Проверка статуса анкеты
 const checkExpertStatus = async () => {
+  const config = useRuntimeConfig() 
   try {
-    const response = await $fetch(`http://localhost:4000/experts/${expert.value.id}`);
+    const response = await $fetch(`${config.public.apiBase}/experts/${expert.value.id}`);
     // Обновляем статус на expired
     await expertsStore.updateExpertProfile(expert.value.id, {
       status: 'expired',
@@ -235,8 +236,8 @@ onMounted(async () => {
       await router.push('/expert-login');
       return;
     }
-
-    const response = await $fetch(`http://localhost:4000/experts/${expertId}`);
+    const config = useRuntimeConfig() 
+    const response = await $fetch(`${config.public.apiBase}/experts/${expertId}`);
     expert.value = response;
 
     // Инициализируем reviews если их нет
@@ -268,10 +269,11 @@ const editProfile = () => {
 };
 
 const requestModeration = async () => {
+  const config = useRuntimeConfig() 
   try {
     await expertsStore.requestModeration(expert.value.id);
     alert('Запрос на модерацию отправлен!');
-    const response = await $fetch(`http://localhost:4000/experts/profile/${expert.value.id}`);
+    const response = await $fetch(`${config.public.apiBase}/experts/profile/${expert.value.id}`);
     expert.value = response;
   } catch (error) {
     console.error('Ошибка запроса модерации:', error);
@@ -299,7 +301,8 @@ const profileStausSwitcher = async () => {
     expert.value.availability = newAvailability;
 
     // Отправляем запрос на сервер
-    const response = await $fetch(`http://localhost:4000/experts/${expert.value.id}`, {
+    const config = useRuntimeConfig() 
+    const response = await $fetch(`${config.public.apiBase}/experts/${expert.value.id}`, {
       method: 'PATCH',
       body: {
         availability: newAvailability
@@ -339,9 +342,9 @@ const logout = () => {
 
 const deleteProfile = async () => {
   if (!confirm('Вы уверены, что хотите удалить свою анкету?')) return;
-
+  const config = useRuntimeConfig() 
   try {
-    await $fetch(`http://localhost:4000/experts/${expert.value.id}`, { method: 'DELETE' });
+    await $fetch(`${config.public.apiBase}/experts/${expert.value.id}`, { method: 'DELETE' });
     alert('Анкета удалена.');
     expertsStore.logoutExpert();
     router.push('/');
@@ -389,10 +392,10 @@ const formatDate = (dateString) => {
 // Удаление отзыва
 const deleteReview = async (reviewIndex) => {
   if (!confirm('Вы уверены, что хотите удалить этот отзыв?')) return;
-
+  const config = useRuntimeConfig() 
   try {
     const response = await $fetch(
-      `http://localhost:4000/experts/${expert.value.id}/reviews/${reviewIndex}/delete`, 
+      `${config.public.apiBase}/experts/${expert.value.id}/reviews/${reviewIndex}/delete`, 
       {
         method: 'POST' // Изменено с DELETE на POST
       }

@@ -94,9 +94,10 @@ const getAgeWord = (age) => {
 
 function getImageUrl(url) {
   if (!url) return null
+  const config = useRuntimeConfig() 
   return url.startsWith('/uploads')
-    ? `http://localhost:4000${url}`
-    : `http://localhost:4000/uploads/${url}`
+    ? `${config.public.fileBase}${url}`
+    : `${config.public.fileBase}/uploads/${url}`
 }
 
 const getDefaultAvatar = () => '/images/expert-default.svg'

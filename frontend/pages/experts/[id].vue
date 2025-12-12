@@ -303,9 +303,10 @@ const prevImage = () => {
 
 // Функция для получения правильного URL изображения
 const getImageUrl = (url) => {
+  const config = useRuntimeConfig() 
   if (!url) return null
   if (url.startsWith('http')) return url
-  return `http://localhost:4000${url}`
+  return config.public.fileBase + `${url}`
 }
 
 // Функция для проверки типа файла (изображение или видео)
@@ -327,9 +328,12 @@ const goBack = () => router.push('/')
 // Получение данных эксперта с backend
 const fetchExpert = async () => {
   loading.value = true
+  const config = useRuntimeConfig() 
+
   try {
+    
     const id = route.params.id
-    const response = await $fetch(`http://localhost:4000/experts/${id}`)
+    const response = await $fetch(`${config.public.apiBase}/experts/${id}`)
     expert.value = response
 
     // Инициализируем reviews если их нет
@@ -378,9 +382,9 @@ const getPercentage = (star) => {
 // Установка рейтинга
 const setRating = async (star) => {
   if (!expert.value) return
-
+  const config = useRuntimeConfig() 
   try {
-    const response = await $fetch(`http://localhost:4000/experts/${expert.value.id}/rating`, {
+    const response = await $fetch(`${config.public.apiBase}/experts/${expert.value.id}/rating`, {
       method: 'POST',
       body: {
         rating: star
@@ -408,9 +412,9 @@ const setRating = async (star) => {
 // Загрузка статистики рейтинга
 const fetchRatingStats = async () => {
   if (!expert.value) return
-
+  const config = useRuntimeConfig() 
   try {
-    const response = await $fetch(`http://localhost:4000/experts/${expert.value.id}/rating/stats`)
+    const response = await $fetch(`${config.public.apiBase}/experts/${expert.value.id}/rating/stats`)
     ratingStats.value = response
   } catch (error) {
     console.error('❌ Ошибка загрузки статистики:', error)
@@ -451,9 +455,9 @@ const addReview = async () => {
     text: newReview.value.trim(),
     date: new Date().toLocaleString()
   }
-
+  const config = useRuntimeConfig() 
   try {
-    await $fetch(`http://localhost:4000/experts/${expert.value.id}/reviews`, {
+    await $fetch(`${config.public.apiBase}/experts/${expert.value.id}/reviews`, {
       method: 'POST',
       body: review
     })
@@ -483,9 +487,9 @@ const getTelegramLink = (username) => {
 
 const handleTelegramClick = async () => {
   if (!expert.value?.telegram) return
-
+  const config = useRuntimeConfig() 
   try {
-    await $fetch(`http://localhost:4000/experts/${expert.value.id}/notify`, {
+    await $fetch(`${config.public.apiBase}/experts/${expert.value.id}/notify`, {
       method: 'POST',
       body: { message: 'Пользователь перешёл в Telegram-чат эксперта с сайта "Собеседник на час"' },
     })

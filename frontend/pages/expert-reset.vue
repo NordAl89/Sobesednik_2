@@ -159,9 +159,9 @@ const handleReset = async () => {
         loading.value = false
         return
     }
-
+    const config = useRuntimeConfig()
     try {
-        const res = await $fetch('http://localhost:4000/experts/reset', {
+        const res = await $fetch(config.public.apiBase + `/experts/reset`, {
             method: 'POST',
             body: form.value
         })
@@ -197,9 +197,9 @@ const handleConfirm = async () => {
         confirmLoading.value = false
         return
     }
-
+        const config = useRuntimeConfig() 
     try {
-        const res = await $fetch('http://localhost:4000/experts/reset/confirm', {
+        const res = await $fetch(config.public.apiBase + '/experts/reset/confirm', {
             method: 'POST',
             body: {
                 login: form.value.login,

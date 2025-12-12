@@ -10,9 +10,9 @@ export const useAdminStore = defineStore('admin', {
   actions: {
     async login(loginData) {
       this.loading = true
-
+      const config = useRuntimeConfig()
       try {
-        const res = await $fetch('http://localhost:4000/admin/login', {
+        const res = await $fetch(config.public.apiBase +`/admin/login`, {
           method: 'POST',
           body: loginData
         })

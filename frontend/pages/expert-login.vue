@@ -60,11 +60,11 @@ const togglePasswordVisibility = () => {
 const handleLogin = async () => {
   loading.value = true
   error.value = ''
-  
+  const config = useRuntimeConfig() 
   try {
     console.log('📤 Отправка данных для входа:', form.value)
     
-    const response = await $fetch('http://localhost:4000/experts/login', {
+    const response = await $fetch(config.public.apiBase + '/experts/login', {
       method: 'POST',
       body: form.value
     })

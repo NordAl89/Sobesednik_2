@@ -1,40 +1,58 @@
 // nuxt.config.ts
-import { defineNuxtConfig } from 'nuxt/config'
-import { fileURLToPath } from 'node:url'
-import { dirname, resolve } from 'node:path'
+import { defineNuxtConfig } from "nuxt/config";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
 
 // Определяем пути для алиасов, если нужно
-const __dirname = dirname(fileURLToPath(import.meta.url))
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineNuxtConfig({
-
-  
   // Дата совместимости Nuxt (важно для стабильности)
-  compatibilityDate: '2025-07-15',
+  compatibilityDate: "2025-07-15",
 
   // Включаем devtools для Vue
   devtools: { enabled: true },
 
   // Автоматическая генерация маршрутов из папки pages
-  srcDir: './',
+  srcDir: "./",
 
   // Настройки runtimeConfig для локалной и публичной конфигурации. Разкомментировать после развёртки на сервере
-  //   runtimeConfig: {
-  //   public: {
-  //     apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:4000'
-  //   }
-  // },
+  runtimeConfig: {
+    public: {
+      apiBase: process.env.API_BASE_URL || "http://localhost:4000",
+      fileBase: process.env.FILE_BASE_URL || "http://localhost:4000",
+    },
+  },
 
   // Плагины
- modules: [
-    '@pinia/nuxt', // ← ДОБАВЬТЕ ЭТУ СТРОКУ (важно: перед @nuxt/image)
-    '@nuxt/image'
+  plugins: [
+    
   ],
-  
+  // Модули
+  modules: [
+    "@pinia/nuxt",
+    "@nuxt/image",
+    "@nuxtjs/sitemap",
+    // ✅ ПРАВИЛЬНО: параметры модуля внутри массива
+    [
+      'yandex-metrika-module-nuxt3',
+      {
+        id: '105794207', // Ваш ID счетчика
+        webvisor: true,
+        clickmap: true,
+        trackLinks: true,
+        accurateTrackBounce: true,
+        ecommerce: "dataLayer"
+        // consoleLog: true, // раскомментируйте для отладки
+        // useCDN: false, // по умолчанию true
+      }
+    ]
+  ],
+
   image: {
     inject: true,
     quality: 80,
-    format: ['webp', 'jpg'],
+    format: ["webp", "jpg"],
     screens: {
       xs: 320,
       sm: 640,
@@ -42,64 +60,61 @@ export default defineNuxtConfig({
       lg: 1024,
       xl: 1280,
       xxl: 1536,
-    },   
-    
+    },
   },
 
+  sitemap: {
+    hostname: "https://sobesednik-na-chas.ru",
+    // Автоматически добавит все маршруты из pages/
+  },
 
   // Стили по умолчанию
-  css: [
-    '~/assets/main.css'
-  ],
+  css: ["~/assets/main.css"],
 
   // Алиасы
   alias: {
-    '@': resolve(__dirname, './')
+    "@": resolve(__dirname, "./"),
   },
 
   // Настройка сборщика (Vite)
   vite: {
     define: {
-      'process.env.DEBUG': false
-    }
+      "process.env.DEBUG": false,
+    },
   },
 
   // ✅ ДОБАВЛЯЕМ SEO КОНФИГУРАЦИЮ
   app: {
     head: {
-      title: 'Собеседник на час - Доверительное общение с понимающим собеседником',
+      title:
+        "Собеседник на час - Доверительное общение с понимающим собеседником",
       meta: [
-        // Базовые meta-теги
-        { name: 'description', content: 'Онлайн-платформа для доверительного общения. Найдите собеседника-эксперта для приватного разговора, душевной беседы или дружеского совета. Общайтесь в чате, по голосовой или видеосвязи.' },
-        { name: 'keywords', content: 'собеседник, доверительное общение, душевная беседа, приватный разговор, дружеский совет, понимающий слушатель, эмоциональная поддержка, выговориться, излить душу, личные темы, откровенный разговор, конфиденциальное общение, приватные темы, сокровенные беседы, доверительный диалог, открытое общение, личный опыт, деликатные вопросы ' },
-        { name: 'robots', content: 'index, follow' },
-        { name: 'author', content: 'Собеседник на час' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1.0' },
-        
-        // Open Graph
-        { property: 'og:title', content: 'Собеседник на час - Пространство для доверительного общения' },
-        { property: 'og:description', content: 'Найдите понимающего собеседника для душевной беседы. Приватные разговоры с эмпатичными людьми, готовыми выслушать и поддержать.' },
-        { property: 'og:image', content: '/images/og-image.jpg' }, // Создайте этот файл в public/images/
-        { property: 'og:url', content: 'https://sobesednik-na-chas.ru' }, // Замените на ваш домен
-        { property: 'og:type', content: 'website' },
-        { property: 'og:site_name', content: 'Собеседник на час' },
-        { property: 'og:locale', content: 'ru_RU' },
-        
-        // Twitter Card
-        { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: 'Собеседник на час - Доверительное общение' },
-        { name: 'twitter:description', content: 'Найдите понимающего собеседника для душевной беседы' },
-        { name: 'twitter:image', content: '/images/twitter-image.jpg' }
+        // Управляющие теги (оставить)
+        { charset: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { name: "robots", content: "index, follow" },
+
+        // Только базовый description (можно оставить)
+        {
+          name: "description",
+          content: "Онлайн-платформа для доверительного общения...",
+        },        
+        // Open Graph - оставить только изображение, остальное убрать
+        { property: "og:image", content: "/images/og-image.jpg" },
+        { property: "og:type", content: "website" },
+        { property: "og:locale", content: "ru_RU" },        
+
+        // Twitter - оставить только карточку и изображение
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:image", content: "/images/twitter-image.jpg" },        
       ],
       link: [
-        { rel: 'canonical', href: 'https://sobesednik-na-chas.ru' }, // Замените на ваш домен
-        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+        { rel: "canonical", href: "https://sobesednik-na-chas.ru" }, // Замените на ваш домен
+        { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
       ],
       htmlAttrs: {
-        lang: 'ru'
-      }
-    }
-  }
-
- 
-})
+        lang: "ru",
+      },
+    },
+  },
+});

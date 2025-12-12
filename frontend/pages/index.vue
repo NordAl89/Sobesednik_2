@@ -259,6 +259,41 @@ onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
 })
 
+// SEO block
+useHead({
+  title: 'Найдите понимающего собеседника онлайн | Собеседник на час',
+
+  meta: [
+    { 
+      name: 'description', 
+      content: 'Сервис подбора проверенных собеседников для душевной беседы. Общайтесь анонимно по аудио, видео или в чате на любые темы. Выговоритесь и получите поддержку.' 
+    },
+    { property: 'og:title', content: 'Собеседник на час — приватное общение с понимающим человеком' },
+    { property: 'og:description', content: 'Вы не одны. Найдите собеседника, который готов выслушать и поддержать.' },
+    { property: 'og:image', content: 'https://sobesednik-na-chas.ru/images/og-main.jpg' },
+    { property: 'og:url', content: 'https://sobesednik-na-chas.ru/' },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:locale', content: 'ru_RU' },
+    { property: 'og:site_name', content: 'Собеседник на час' },
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:title', content: 'Найдите понимающего собеседника онлайн | Собеседник на час' },
+    { name: 'twitter:description', content: 'Анонимные доверительные беседы с понимающими собеседниками.' },
+    { name: 'twitter:image', content: 'https://sobesednik-na-chas.ru/images/twitter-main.jpg' },
+    { name: 'robots', content: 'index, follow, max-image-preview:large' },
+    { name: 'keywords', content: 'собеседник, поговорить, поддержка, слушатель, доверительная беседа, анонимный разговор, онлайн общение' },
+    { name: 'yandex-verification', content: '593746f54fd88b0d' }
+  ],
+
+  link: [
+    { rel: 'canonical', href: 'https://sobesednik-na-chas.ru/' },
+    { rel: 'preload', as: 'image', href: 'https://sobesednik-na-chas.ru/images/og-main.jpg', fetchpriority: 'high' }
+  ],  
+
+  htmlAttrs: {
+    lang: 'ru'
+  }
+})
+
 </script>
 
 <style scoped>

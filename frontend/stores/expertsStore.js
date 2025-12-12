@@ -10,7 +10,7 @@ export const useExpertsStore = defineStore('experts', {
   actions: {
     async addExpert(expert) {
       this.loading = true;
-      
+      const config = useRuntimeConfig() 
       try {
         console.log('📤 Отправка данных на сервер...', expert);
 
@@ -19,8 +19,8 @@ export const useExpertsStore = defineStore('experts', {
           const randomDigits = Math.floor(100 + Math.random() * 900);
           expert.paymentCode = `${expert.login}${randomDigits}`;
         }
-
-        const response = await $fetch('http://localhost:4000/experts', {
+        
+        const response = await $fetch(config.public.apiBase +'/experts', {
           method: 'POST',
           body: expert
         });
@@ -66,10 +66,11 @@ export const useExpertsStore = defineStore('experts', {
     async addExpertWithFiles(formData) {
       this.loading = true;
       
+      const config = useRuntimeConfig() 
       try {
         console.log('📤 Отправка данных с файлами на сервер...');
 
-        const response = await $fetch('http://localhost:4000/experts/with-files', {
+        const response = await $fetch(config.public.apiBase + '/experts/with-files', {
           method: 'POST',
           body: formData
         });
@@ -119,8 +120,10 @@ export const useExpertsStore = defineStore('experts', {
 
     async loginExpert(loginData) {
       this.loading = true;
+
+      const config = useRuntimeConfig() 
       try {
-        const response = await $fetch('http://localhost:4000/experts/login', {
+        const response = await $fetch(config.public.apiBase +'/experts/login', {
           method: 'POST',
           body: loginData
         });
@@ -149,10 +152,12 @@ export const useExpertsStore = defineStore('experts', {
     },
 
     async updateExpertProfile(expertId, updateData) {
+
+      const config = useRuntimeConfig() 
       try {
         console.log('📡 Отправка обновления на сервер...', { expertId, updateData });
         
-        const response = await $fetch(`http://localhost:4000/experts/${expertId}/update`, {
+        const response = await $fetch(config.public.apiBase +`/experts/${expertId}/update`, {
           method: 'POST',
           body: updateData
         });
@@ -192,10 +197,12 @@ export const useExpertsStore = defineStore('experts', {
     },
 
     async updateExpertProfileWithFiles(expertId, formData) {
+
+      const config = useRuntimeConfig() 
       try {
         console.log('📡 Отправка обновления с файлами на сервер...', expertId);
         
-        const response = await $fetch(`http://localhost:4000/experts/${expertId}/update-with-files`, {
+        const response = await $fetch(config.public.apiBase +`/experts/${expertId}/update-with-files`, {
           method: 'POST',
           body: formData
         });
@@ -226,10 +233,12 @@ export const useExpertsStore = defineStore('experts', {
     },
 
     async requestModeration(expertId) {
+
+      const config = useRuntimeConfig() 
       try {
         console.log('📋 Запрос модерации для эксперта:', expertId);
         
-        const response = await $fetch(`http://localhost:4000/experts/${expertId}/moderation`, {
+        const response = await $fetch(config.public.apiBase +`/experts/${expertId}/moderation`, {
           method: 'POST'
         });
 
@@ -259,9 +268,11 @@ export const useExpertsStore = defineStore('experts', {
     },
 
     async syncWithServer() {
+
+      const config = useRuntimeConfig() 
       try {
         console.log('🔄 Синхронизация с сервером...');
-        const response = await $fetch('http://localhost:4000/experts')
+        const response = await $fetch(config.public.apiBase +'/experts')
         
         console.log('📥 Ответ от сервера:', response);
         console.log('📊 Тип ответа:', typeof response);

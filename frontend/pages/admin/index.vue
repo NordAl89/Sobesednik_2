@@ -194,13 +194,14 @@ const searchQuery = ref('')
 // Загрузка экспертов
 const loadExperts = async () => {
   loading.value = true
+  const config = useRuntimeConfig() 
   try {
     // Пробуем использовать специальный endpoint для админа
     console.log('🔄 Попытка загрузить данные через /experts/admin/all...');
     let response;
-
+    
     try {
-      response = await $fetch('http://localhost:4000/experts/admin/all')
+      response = await $fetch(`${config.public.apiBase}/experts/admin/all`)
       console.log('✅ Данные загружены через admin endpoint');
     } catch (adminError) {
       console.warn('⚠️ Admin endpoint недоступен, используем fallback:', adminError.message);
@@ -208,7 +209,7 @@ const loadExperts = async () => {
 
       // Fallback: используем обычный endpoint (но он вернет только активных)
       // ВРЕМЕННОЕ РЕШЕНИЕ: Нужно перезапустить бэкенд для работы admin endpoint
-      response = await $fetch('http://localhost:4000/experts')
+      response = await $fetch(`${config.public.apiBase}/experts`)
 
       alert('⚠️ ВНИМАНИЕ: Бэкенд нужно перезапустить!\nСейчас показаны только активные анкеты.\nПерезапустите backend командой: npm run start:dev')
     }
@@ -288,11 +289,11 @@ const activeCount = computed(() => {
 // Действия администратора
 const approveExpert = async (expertId) => {
   if (!confirm('Вы уверены, что хотите одобрить эту анкету?')) return
-
+const config = useRuntimeConfig() 
   try {
     console.log('✅ Одобрение эксперта:', expertId)
 
-    const response = await $fetch(`http://localhost:4000/experts/admin/${expertId}/approve`, {
+    const response = await $fetch(`${config.public.apiBase}/experts/admin/${expertId}/approve`, {
       method: 'POST'
     })
 
@@ -322,11 +323,11 @@ const extendPublicationt = async (expertId) => {
 const rejectExpert = async (expertId) => {
   const reason = prompt('Укажите причину отклонения:')
   if (!reason) return
-
+  const config = useRuntimeConfig() 
   try {
     console.log('❌ Отклонение эксперта:', expertId, 'Причина:', reason)
 
-    const response = await $fetch(`http://localhost:4000/experts/admin/${expertId}/reject`, {
+    const response = await $fetch(`${config.public.apiBase}/experts/admin/${expertId}/reject`, {
       method: 'POST',
       body: { reason }
     })
@@ -362,9 +363,9 @@ const viewDetails = (expertId) => {
 // Блокировка анкеты
 const blockExpert = async (expertId) => {
   if (!confirm('Вы уверены, что хотите заблокировать эту анкету?')) return
-
+  const config = useRuntimeConfig() 
   try {
-    const response = await $fetch(`http://localhost:4000/experts/admin/${expertId}/block`, {
+    const response = await $fetch(`${config.public.apiBase}/experts/admin/${expertId}/block`, {
       method: 'POST'
     })
 
@@ -385,9 +386,9 @@ const blockExpert = async (expertId) => {
 // Верификация эксперта "Подтверждённый собеседник"
 const verifyExpert = async (expertId) => {
   if (!confirm('Вы уверены, что хотите верифицировать эту анкету?')) return
-
+  const config = useRuntimeConfig() 
   try {
-    const response = await $fetch(`http://localhost:4000/experts/admin/${expertId}/verify`, {
+    const response = await $fetch(`${config.public.apiBase}/experts/admin/${expertId}/verify`, {
       method: 'POST'
     })
 
@@ -404,7 +405,7 @@ const verifyExpert = async (expertId) => {
     alert('Ошибка при верификации анкеты: ' + (error.data?.message || error.message))
   } finally {
     try {
-      const response = await $fetch(`http://localhost:4000/experts/${expertId}`)
+      const response = await $fetch(`${config.public.apiBase}/experts/${expertId}`)
       console.log('✅ Анкета после верификации:', response)
     } catch (error) {
       console.error('❌ Ошибка получения данных после верификации:', error)
@@ -415,9 +416,9 @@ const verifyExpert = async (expertId) => {
 // Снятие верификации
 const unverifyExpert = async (expertId) => {
   if (!confirm('Вы уверены, что хотите снять верификацию с этого собеседника?')) return
-
+  const config = useRuntimeConfig() 
   try {
-    const response = await $fetch(`http://localhost:4000/experts/admin/${expertId}/unverify`, {
+    const response = await $fetch(`${config.public.apiBase}/experts/admin/${expertId}/unverify`, {
       method: 'POST'
     })
 
@@ -439,9 +440,9 @@ const unverifyExpert = async (expertId) => {
 // Удаление анкеты
 const deleteExpert = async (expertId) => {
   if (!confirm('Вы уверены, что хотите УДАЛИТЬ анкету? Это действие необратимо!')) return
-
+  const config = useRuntimeConfig() 
   try {
-    await $fetch(`http://localhost:4000/experts/${expertId}`, {
+    await $fetch(`${config.public.apiBase}/experts/${expertId}`, {
       method: 'DELETE'
     })
 
