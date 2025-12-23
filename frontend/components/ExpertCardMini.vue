@@ -128,7 +128,8 @@ const formatRating = (rating) => {
   margin: 0; /* Убран margin, чтобы не выходить за границы */
   cursor: pointer;
   width: 100%; /* Изменено с 230px на 100% для гибкости */
-  max-width: 280px; /* Максимальная ширина для больших экранов */
+  max-width: 100%;
+  min-width: 0; /* 🔥 КРИТИЧНО для grid + flex */
   background-color: #edeef0;
   transition: 0.3s ease;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);

@@ -3,7 +3,7 @@
     <div class="compact-hero">
       <div class="compact-hero-content">
         <p class="compact-hero-text">
-         Собеседник&nbsp;&mdash; место, где каждый может найти искреннего друга, поддержку&nbsp;и&nbsp;понимание.
+         Собеседник на час&nbsp;&mdash; место, где каждый может найти искреннего друга, поддержку&nbsp;и&nbsp;понимание.
         </p>
       </div>
     </div>
@@ -54,7 +54,7 @@
 </div>
 
 
-    <h1>Список собеседников</h1>
+    <h1>Собеседник на час</h1>
 
     <div v-if="store.loading">Загрузка...</div>
     <div v-else-if="sortedExperts.length === 0">Нет доступных собеседников</div>
@@ -422,7 +422,8 @@ body {
 /* ---------- Сетка карточек ---------- */
 .experts-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+
   gap: 16px;
   margin-top: 20px;
 }
