@@ -736,4 +736,22 @@ async unverifyExpert(@Param('id') id: string) {
   };
 }
 
+// Продление публикации анкеты эксперта вручную админом
+@Post('admin/:id/extend')
+async extendPublication(
+  @Param('id') id: string,
+  @Body() body: { days: number }
+) {
+  if (!body.days || body.days <= 0) {
+    throw new BadRequestException('Количество дней должно быть больше 0');
+  }
+
+  const expert = await this.expertsService.extendPublication(id, body.days);
+
+  return {
+    id: expert.id,
+    expiresAt: expert.expiresAt,
+  };
+}
+
 }

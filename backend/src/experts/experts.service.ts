@@ -665,4 +665,38 @@ async resetPassword(login: string, code: string, password: string) {
   return { message: 'Пароль успешно изменён' };
 }
 
+// Продление публикации анкеты эксперта вручную админом
+async extendPublication(expertId: string, days: number): Promise<Expert> {
+  const expert = await this.findOne(expertId);
+
+  const now = new Date();
+
+  let baseDate: Date;
+
+  if (expert.expiresAt && expert.expiresAt > now) {
+    // анкета ещё активна — продлеваем от expiresAt
+    baseDate = new Date(expert.expiresAt);
+  } else {
+    // анкета истекла или ещё не публиковалась
+    baseDate = now;
+  }
+
+  baseDate.setDate(baseDate.getDate() + days);
+  expert.expiresAt = baseDate;
+
+  // если была истекшая — возвращаем в active
+  if (expert.status === 'expired') {
+    expert.status = 'active';
+  }
+
+  const saved = await this.expertsRepository.save(expert);
+  await this.saveData();
+
+  console.log(
+    `⏳ Продление анкеты ${expertId} на ${days} дней. Новый expiresAt: ${baseDate.toISOString()}`
+  );
+
+  return saved;
+}
+
 }
