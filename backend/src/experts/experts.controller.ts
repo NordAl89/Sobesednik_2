@@ -375,7 +375,7 @@ async confirmReset(@Body() body: any) {
   }
 
   // Endpoint для админа - возвращает всех экспертов (включая на модерации)
-  @Get('admin/all')
+@Get('admin/all')
 async findAllForAdmin() {
   console.log('🔍 Запрос к /experts/admin/all');
   const experts = await this.expertsService.findAll();
@@ -414,6 +414,8 @@ async findAllForAdmin() {
       createdAt: expert.createdAt,
       updatedAt: expert.updatedAt,
       alwaysAvailable: expert.alwaysAvailable,
+      publishedAt: expert.publishedAt,
+      expiresAt: expert.expiresAt,      
       reviews: reviews, // ← ДОБАВЛЯЕМ ОТЗЫВЫ
       reviewsCount: reviews.length // ← И количество отзывов для удобства
     };

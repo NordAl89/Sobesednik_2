@@ -1,3 +1,4 @@
+
 <template>
   <div class="admin-panel">
     <!-- Хедер с кнопкой выхода -->
@@ -101,7 +102,7 @@
             </div>
             <div class="info-row">
               <span class="info-label">Срок публикации:</span>
-              <span class="info-value">{{ expert.publicationDays || 30 }} дней</span>
+              <span class="info-value">{{ getDaysLeft(expert.expiresAt)  }} дней</span>
             </div>
             <div class="info-row">
               <span class="info-label">Сумма оплаты:</span>
@@ -490,6 +491,22 @@ const formatDate = (dateString) => {
     return 'Ошибка формата даты'
   }
 }
+
+// Остаток дней публикации (источник истины — expiresAt)
+const getDaysLeft = (expiresAt) => {
+  if (!expiresAt) return '—'
+
+  const now = Date.now()
+  const exp = new Date(expiresAt).getTime()
+
+  if (isNaN(exp)) return '—'
+
+  return Math.max(
+    Math.ceil((exp - now) / 86400000),
+    0
+  )
+}
+
 // Добавьте также функцию для отображения относительного времени
 const formatRelativeTime = (dateString) => {
   if (!dateString) return ''
