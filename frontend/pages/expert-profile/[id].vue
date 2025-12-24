@@ -229,30 +229,38 @@ const checkExpertStatus = async () => {
 
 // Загрузка данных эксперта
 onMounted(async () => {
-  const expertId = route.params.id;
+  const expertId = route.params.id
+
+  // 🔁 ВАЖНО: восстановление после F5
+  expertsStore.restoreExpert()
+
+  if (!expertsStore.currentExpert) {
+    router.push('/expert-login')
+    return
+  }
+
+  // 🔒 Запрет доступа к чужой анкете
+  if (expertsStore.currentExpert.id !== expertId) {
+    router.push(`/expert-profile/${expertsStore.currentExpert.id}`)
+    return
+  }
 
   try {
-    if (!expertsStore.currentExpert || expertsStore.currentExpert.id !== expertId) {
-      await router.push('/expert-login');
-      return;
-    }
-    const config = useRuntimeConfig() 
-    const response = await $fetch(`${config.public.apiBase}/experts/${expertId}`);
-    expert.value = response;
+    const config = useRuntimeConfig()
+    const response = await $fetch(
+      `${config.public.apiBase}/experts/${expertId}`
+    )
 
-    // Инициализируем reviews если их нет
-    if (!expert.value.reviews) {
-      expert.value.reviews = [];
-    }
+    expert.value = response
+    if (!expert.value.reviews) expert.value.reviews = []
 
-    startCountdown();
+    startCountdown()
   } catch (error) {
-    console.error('Ошибка загрузки профиля:', error);
-    await router.push('/expert-login');
+    console.error('Ошибка загрузки профиля:', error)
+    router.push('/expert-login')
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-  
 });
 
 onUnmounted(() => {
